@@ -7,7 +7,9 @@ import inheritHooks from './inheritHooks'
 import formatFields from './formatFields'
 import { Blueprint, Options } from './@types'
 import setupChannelsFactory from './setupChannelsFactory'
+import * as hooks from './hooks'
 
+export { hooks }
 export * from './presets'
 
 export function tableServiceFactory(options: Options = {
