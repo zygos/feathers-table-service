@@ -25,14 +25,18 @@ export function tableServiceFactory(options: Options = {
   const safeCase = (str: string): string => options.doUseSnakeCase ? snakeCase(str) : str
   const formatTableSchema = formatTableSchemaFactory(safeCase)
   const buildTable = buildTableFactory(safeCase)
+  const afterAll: Function[] = []
+  let appReference: Application
 
-  return function tableService(name: string, compactBlueprint: Blueprint) {
+  const tableServiceFactory = function tableService(name: string, compactBlueprint: Blueprint) {
     if (typeof name !== 'string') {
       throw new Error('First tableService argument is name: String')
     }
 
     return async function createService(app: Application) {
       try {
+        if (!appReference) appReference = app
+
         const knex = app.get('knexClient')
 
         if (!app.getService) {
@@ -82,6 +86,10 @@ export function tableServiceFactory(options: Options = {
           await blueprint.setup(app)
         }
 
+        if (blueprint.afterAll) {
+          afterAll.push(blueprint.afterAll)
+        }
+
         return service
       } catch (err) {
         console.error(err)
@@ -89,6 +97,12 @@ export function tableServiceFactory(options: Options = {
       }
     }
   }
+
+  tableServiceFactory.runAfter = function runAfter() {
+    return Promise.all(afterAll.map(fn => fn(appReference)))
+  }
+
+  return tableServiceFactory
 }
 
 tableServiceFactory.inheritHooks = inheritHooks

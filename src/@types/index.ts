@@ -35,6 +35,7 @@ export interface Blueprint {
   service?: any
   table?: Table
   setup?: Function
+  afterAll: Function
 }
 
 export type EventContext = {
