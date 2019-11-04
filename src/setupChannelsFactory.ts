@@ -39,7 +39,7 @@ export default function setupChannelsFactory(app: Application) {
       return setupChannels(service, channels({ app, service }))
     }
 
-    const globalEvents = ['login']
+    const globalEvents = ['connection', 'login', 'logout']
 
     for (const event in channels) {
       if (globalEvents.includes(event)) {

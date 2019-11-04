@@ -78,6 +78,10 @@ export function tableServiceFactory(options: Options = {
           }
         }
 
+        if (blueprint.setup) {
+          await blueprint.setup()
+        }
+
         return service
       } catch (err) {
         console.error(err)
