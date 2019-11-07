@@ -12,19 +12,30 @@ import * as hooks from './hooks'
 export { hooks }
 export * from './presets'
 
-export function tableServiceFactory(options: Options = {
-  apiBase: '',
-  doDropTable: false,
-  doMigrateSchema: true,
-  doUseSnakeCase: false,
-  paginate: {
-    default: 10,
-    max: 50,
-  },
-}) {
-  const safeCase = (str: string): string => options.doUseSnakeCase ? snakeCase(str) : str
+export function tableServiceFactory({
+  apiBase = '',
+  doAlterColumns = true,
+  doAddColumns = true,
+  doDropColumns = true,
+  doDropTables = false,
+  doMigrateSchema = true,
+  doUseSnakeCase = false,
+  paginate = { default: 10, max: 50 },
+}: Options) {
+  const options = {
+    apiBase,
+    doAlterColumns,
+    doAddColumns,
+    doDropColumns,
+    doDropTables,
+    doMigrateSchema,
+    doUseSnakeCase,
+    paginate,
+  }
+
+  const safeCase = (str: string): string => doUseSnakeCase ? snakeCase(str) : str
   const formatTableSchema = formatTableSchemaFactory(safeCase)
-  const buildTable = buildTableFactory(safeCase)
+  const buildTable = buildTableFactory(safeCase, options)
   const afterAll: Function[] = []
   let appReference: Application
 
@@ -41,11 +52,11 @@ export function tableServiceFactory(options: Options = {
 
         if (!app.getService) {
           app.getService = function getService(name) {
-            return app.service(`${options.apiBase}${name}`)
+            return app.service(`${apiBase}${name}`)
           }
 
           app.registerService = function registerService(name: string, ...service) {
-            const path = `${options.apiBase}${name}`
+            const path = `${apiBase}${name}`
             app.use(path, ...service)
             return app.getService(name)
           }
@@ -55,7 +66,7 @@ export function tableServiceFactory(options: Options = {
 
         const preService = blueprint.service || feathersKnex({
           Model: knex,
-          paginate: { ...options.paginate },
+          paginate: { ...paginate },
           ...blueprint.knex,
         })
 
@@ -74,10 +85,10 @@ export function tableServiceFactory(options: Options = {
         if (blueprint.table) {
           blueprint.table.fields = formatFields(blueprint.table.fields)
 
-          if (options.doDropTable) {
-            await knex.schema.dropTableIfExists(blueprint.table.name)
-            await buildTable(knex, blueprint.table)
-          } else if (options.doMigrateSchema) {
+          if (doMigrateSchema) {
+            if (doDropTables) {
+              await knex.schema.dropTableIfExists(blueprint.table.name)
+            }
             await buildTable(knex, blueprint.table)
           }
         }

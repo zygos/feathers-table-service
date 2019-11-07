@@ -1,6 +1,6 @@
+import { HookContext } from "@feathersjs/feathers"
 import { castArray } from "../../utils"
 import { TableFields } from "../../@types"
-import { HookContext } from "@feathersjs/feathers"
 
 export default function transformsFactory(fields: TableFields) {
   const transformsMap: { [key: string]: Function } = {}

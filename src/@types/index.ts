@@ -68,7 +68,10 @@ export type HookMethods = {
 
 export type Options = {
   apiBase: string
-  doDropTable: boolean
+  doAlterColumns: boolean
+  doAddColumns: boolean
+  doDropColumns: boolean
+  doDropTables: boolean
   doMigrateSchema: boolean
   doUseSnakeCase: boolean
   paginate: {

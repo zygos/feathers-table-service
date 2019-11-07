@@ -4,17 +4,21 @@ import { TableFields } from './@types'
 export default function buildColumnsFactory(safeCase: Function) {
   return function buildColumns(fields: TableFields) {
     return (tableBuilder: Knex.TableBuilder) => {
-      for (const name in fields) {
+      Object.keys(fields).forEach((name) => {
         const columnName = safeCase(name)
         const entry = fields[name]
         const type = entry.type
-        const typeArgs = entry.typeArgs || entry.args || []
+        const typeArgs = entry.args || entry.typeArgs || []
+        const isAlter = entry.doesExist
+
+        if (isAlter && (entry.unique || entry.primary || entry.references)) return
+
         const column = typeof tableBuilder[type] === 'function'
           ? tableBuilder[type](columnName, ...typeArgs)
           : tableBuilder.specificType(columnName, type)
 
-        if (entry.nullable === false) {
-          column.notNullable()
+        if (isAlter) {
+          column.alter()
         }
 
         if (entry.unique) {
@@ -25,6 +29,10 @@ export default function buildColumnsFactory(safeCase: Function) {
           column.primary(entry.primary)
         } else if (entry.primary) {
           column.primary()
+        }
+
+        if (entry.nullable === false) {
+          column.notNullable()
         }
 
         if (entry.comment) {
@@ -38,7 +46,6 @@ export default function buildColumnsFactory(safeCase: Function) {
         if (entry.references) {
           column.references(entry.references)
         }
-
         if (entry.inTable) {
           column.inTable(entry.inTable)
         }
@@ -54,7 +61,7 @@ export default function buildColumnsFactory(safeCase: Function) {
         if (typeof entry.defaultTo !== 'undefined') {
           column.defaultTo(entry.defaultTo)
         }
-      }
+      })
     }
   }
 }
