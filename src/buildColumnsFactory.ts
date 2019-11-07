@@ -8,7 +8,7 @@ export default function buildColumnsFactory(safeCase: Function) {
         const columnName = safeCase(name)
         const entry = fields[name]
         const type = entry.type
-        const typeArgs = entry.typeArgs || []
+        const typeArgs = entry.typeArgs || entry.args || []
         const column = typeof tableBuilder[type] === 'function'
           ? tableBuilder[type](columnName, ...typeArgs)
           : tableBuilder.specificType(columnName, type)
