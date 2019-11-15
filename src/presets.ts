@@ -2,15 +2,15 @@ const patterns: { [key: string]: any } = {
   address: /^[\p{L}\s\d\+-\/`'"\(\)]*$/u,
   commonString: /^[\p{L}\s\d\+-/`'"\(\)]*$/u,
   name: /^[\w'\-,.]*[^0-9_!¡?÷?¿/\\+=@#$%ˆ&*(){}|~<>;:[\]]{2,}$/,
-  password: /^[\w-!@#$%^&*=+~,.;()]*$/,
+  password: /^[\w-!@#$%/^&*=+~,.;()]*$/,
   phoneNumber: /^[+\-\(\) 0-9]*$/,
   slug: /^[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*$/,
 }
 const stringPatterns: { [key: string]: any } = Object
   .keys(patterns)
   .reduce((acc, key) => ({
-    [key]: patterns[key].source.replace('\\', '\\\\'),
     ...acc,
+    [key]: patterns[key].source.replace(/\\/g, '\\'),
   }), {})
 
 export const INTEGER_MIN = -2147483647
