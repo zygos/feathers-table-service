@@ -1,4 +1,4 @@
-const patterns: { [key: string]: any }= {
+const patterns: { [key: string]: any } = {
   address: /^[\p{L}\s\d\+-\/`'"\(\)]*$/u,
   commonString: /^[\p{L}\s\d\+-/`'"\(\)]*$/u,
   name: /^[\w'\-,.]*[^0-9_!¡?÷?¿/\\+=@#$%ˆ&*(){}|~<>;:[\]]{2,}$/,
@@ -54,7 +54,7 @@ export const ADDRESS = definePreset('string', {
   validate: {
     type: 'string',
     maxLength: 92,
-    pattern: stringPatterns.address.source,
+    pattern: stringPatterns.address,
   },
 })
 
@@ -103,7 +103,7 @@ export const FULL_NAME = definePreset('string', {
     type: 'string',
     minLength: 1,
     maxLength: 80,
-    pattern: stringPatterns.commonString.source,
+    pattern: stringPatterns.commonString,
   },
 })
 
@@ -176,7 +176,7 @@ export const PASSWORD = definePreset('string', {
     type: 'string',
     minLength: 8,
     maxLength: 64,
-    pattern: stringPatterns.password.source,
+    pattern: stringPatterns.password,
   },
 })
 
@@ -196,7 +196,7 @@ export const NAME = definePreset('string', {
   validate: {
     type: 'string',
     maxLength: 48,
-    pattern: stringPatterns.name.source,
+    pattern: stringPatterns.name,
   },
 })
 
@@ -220,7 +220,7 @@ export const PHONE_NUMBER = definePreset('string', {
   validate: {
     type: 'string',
     maxLength: 32,
-    pattern: stringPatterns.phoneNumber.source,
+    pattern: stringPatterns.phoneNumber,
   },
 })
 
@@ -236,7 +236,7 @@ export const SLUG = definePreset('string', {
   validate: {
     type: 'string',
     maxLength: 200,
-    pattern: stringPatterns.slug.source,
+    pattern: stringPatterns.slug,
   },
 })
 
