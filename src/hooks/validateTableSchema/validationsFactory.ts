@@ -1,49 +1,28 @@
 import { TableFields, Validator, ValidateOptions } from '../../@types'
 import { HookContext } from '@feathersjs/feathers'
 import { castArray } from '../../utils'
+import buildJsonSchema from '../../buildJsonSchema'
 
 export default function validationsFactory(
   fields: TableFields,
   validator: Validator,
-  { inheritNullable }: ValidateOptions,
+  options: ValidateOptions,
 ) {
-  const buildValidations = (assignToValidations = {}) => {
-    const validations: { [key: string]: any } = {}
-
-    for (const key in fields) {
-      const staticField = typeof fields[key] === 'function'
-        ? fields[key]()
-        : fields[key]
-
-      if (staticField.validate) {
-        validations[key] = {...staticField.validate }
-
-        if (inheritNullable && staticField.nullable) {
-          validations[key].nullable = staticField.nullable
-        }
-      }
-    }
-
-    return validations
-  }
-
-  const properties = buildValidations()
-
-  const required = Object
-    .keys(fields)
-    .filter(fieldName => fields[fieldName].required)
+  const { properties, required } = buildJsonSchema(fields, options)
 
   const requiredInputs = Object
     .keys(fields)
     .filter(fieldName => fields[fieldName].required)
 
   // for PATCH
-  const checkWithoutRequired = validator.compile({ properties })
+  const checkWithoutRequired = validator.compile({
+    properties,
+  })
 
   // for CREATE, UPDATE user inputs
   const checkWithRequiredInputs = validator.compile({
-    required: requiredInputs,
     properties,
+    required: requiredInputs,
   })
 
   // for CREATE, UPDATE processed inputs
