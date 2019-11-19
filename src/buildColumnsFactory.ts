@@ -1,13 +1,13 @@
 import Knex from 'knex'
-import { TableFields } from './@types'
+import { TableSchemaProperties } from './@types'
 
 export default function buildColumnsFactory(safeCase: Function) {
-  return function buildColumns(fields: TableFields) {
+  return function buildColumns(properties: TableSchemaProperties) {
     return (tableBuilder: Knex.TableBuilder) => {
-      Object.keys(fields).forEach((name) => {
+      Object.keys(properties).forEach((name) => {
         const columnName = safeCase(name)
-        const entry = fields[name]
-        const type = entry.type
+        const entry = properties[name]
+        const type = entry.knexType || entry.type
         const typeArgs = entry.args || entry.typeArgs || []
         const isAlter = entry.doesExist
 
@@ -58,8 +58,15 @@ export default function buildColumnsFactory(safeCase: Function) {
           column.onUpdate(entry.onUpdate)
         }
 
-        if (typeof entry.defaultTo !== 'undefined') {
-          column.defaultTo(entry.defaultTo)
+        if (typeof entry.default !== 'undefined' || typeof entry.defaultTo !== 'undefined') {
+          const defaultValue = typeof entry.defaultTo === 'undefined'
+            ? entry.default
+            : entry.defaultTo
+
+          if (!(typeof entry.defaultTo === 'undefined' &&
+            Object.keys(entry).includes('defaultTo'))) {
+            column.defaultTo(defaultValue)
+          }
         }
       })
     }

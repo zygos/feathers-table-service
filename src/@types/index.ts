@@ -80,16 +80,18 @@ export type Options = {
   },
 }
 
-export type ValidateOptions = {
-  inheritNullable: boolean
-}
-
 export type Table = {
   name: string
-  fields: TableFields
+  schema: TableSchema
 }
 
-export type TableFields = {
+export type TableSchema = {
+  app?: any
+  properties: TableSchemaProperties
+  required?: string[]
+}
+
+export type TableSchemaProperties = {
   [key: string]: any
 }
 

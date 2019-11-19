@@ -1,18 +1,18 @@
 import { HookContext } from "@feathersjs/feathers"
 import { castArray } from "../../utils"
-import { TableFields } from "../../@types"
+import { TableSchemaProperties } from "../../@types"
 
-export default function transformsFactory(fields: TableFields) {
+export default function transformsFactory(properties: TableSchemaProperties) {
   const transformsMap: { [key: string]: Function } = {}
-  for (const key in fields) {
-    if (typeof fields[key].transform === 'function') {
-      transformsMap[key] = fields[key].transform
+  for (const key in properties) {
+    if (typeof properties[key].transform === 'function') {
+      transformsMap[key] = properties[key].transform
     }
   }
 
   const applyTransforms = (row: any) => {
     for (const key in transformsMap) {
-      if (typeof row[key] !== 'undefined' || fields[key].forceTransform) {
+      if (typeof row[key] !== 'undefined' || properties[key].forceTransform) {
         row[key] = transformsMap[key](row[key])
       }
     }

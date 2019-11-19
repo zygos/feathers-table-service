@@ -1,20 +1,19 @@
 import { HookContext } from '@feathersjs/feathers'
-import { TableFields, Validator, ValidateOptions } from '../../@types'
+import { TableSchema, Validator } from '../../@types'
 import transformsFactory from './transformsFactory'
 import validationsFactory from './validationsFactory'
 import { BadRequest } from '@feathersjs/errors'
 
 export default function validateTableSchemaFactory(
   validator: Validator,
-  options: ValidateOptions = { inheritNullable: false },
 ) {
-    return (fieldsList: TableFields) => {
-      if (fieldsList.app && fieldsList.method) {
+    return (tableSchema: TableSchema) => {
+      if (typeof tableSchema.app !== 'undefined') {
         throw new Error('Hook called without a schema')
       }
 
-      const validations = validationsFactory(fieldsList, validator, options)
-      const transforms = transformsFactory(fieldsList)
+      const validations = validationsFactory(tableSchema, validator)
+      const transforms = transformsFactory(tableSchema.properties)
 
       return function validateTableSchema(ctx: HookContext) {
         if (typeof ctx.data === 'undefined') return ctx

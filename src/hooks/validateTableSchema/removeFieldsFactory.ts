@@ -1,8 +1,8 @@
 import { HookContext } from '@feathersjs/feathers'
-import { TableFields } from '../../@types'
+import { TableSchema } from '../../@types'
 import { castArray } from '../../utils'
 
-export default function removeFieldsFactory(fields: TableFields) {
+export default function removeFieldsFactory(fields: TableSchema) {
   const fieldsSet = new Set(Object.keys(fields))
 
   function removeFields(row: { [key: string]: any }) {

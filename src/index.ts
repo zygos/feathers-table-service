@@ -4,10 +4,11 @@ import feathersKnex from 'feathers-knex'
 import buildTableFactory from './buildTableFactory'
 import formatTableSchemaFactory from './formatTableSchemaFactory'
 import inheritHooks from './inheritHooks'
-import formatFields from './formatFields'
+import formatSchema from './formatSchema'
 import { Blueprint, Options } from './@types'
 import setupChannelsFactory from './setupChannelsFactory'
 import * as hooks from './hooks'
+import { castArray } from './utils'
 
 export { hooks }
 export * from './presets'
@@ -72,7 +73,7 @@ export function tableServiceFactory({
 
         if (!preService) throw new Error(`Could not initialize ${name}`)
 
-        const service = app.registerService(name, preService)
+        const service = (app.registerService as any)(name, ...castArray(preService))
 
         if (blueprint.hooks) {
           service.hooks(inheritHooks(blueprint.hooks))
@@ -83,7 +84,7 @@ export function tableServiceFactory({
         }
 
         if (blueprint.table) {
-          blueprint.table.fields = formatFields(blueprint.table.fields)
+          blueprint.table.schema = formatSchema(blueprint.table.schema)
 
           if (doMigrateSchema) {
             if (doDropTables) {
