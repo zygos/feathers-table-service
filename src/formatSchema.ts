@@ -4,6 +4,8 @@ const maybeCall = (fn: any) => typeof fn === 'function' ? fn() : fn
 
 const defaultField = {
   comment: null,
+  foreign: false,
+  index: false,
   inTable: null,
   nullable: true,
   onDelete: null,
@@ -20,7 +22,15 @@ export default function formatSchema(schema: TableSchema): TableSchema {
   if (!schema) throw new Error('No table schema provided')
 
   for (const columnName in schema.properties) {
-    schema.properties[columnName] = { ...defaultField, ...maybeCall(schema.properties[columnName]) }
+    const field = maybeCall(schema.properties[columnName])
+    schema.properties[columnName] = {
+      ...defaultField,
+      ...field,
+    }
+
+    if (field.references) {
+      schema.properties[columnName].foreign = true
+    }
   }
 
   return schema

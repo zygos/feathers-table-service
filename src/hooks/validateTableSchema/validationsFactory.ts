@@ -18,9 +18,17 @@ export default function validationsFactory(tableSchema: TableSchema, validator: 
   })
 
   return function validation(ctx: HookContext) {
-    const check = ctx.method === 'patch'
-      ? checkWithoutRequired
-      : checkWithRequired
+    const doIgnoreRequired = (ctx.params && ctx.params.tableService)
+      ? ctx.params.tableService.doIgnoreRequired
+      : undefined
+
+    const doUseRequired = typeof doIgnoreRequired === 'undefined'
+      ? ctx.method !== 'patch'
+      : !doIgnoreRequired
+
+    const check = doUseRequired
+      ? checkWithRequired
+      : checkWithoutRequired
 
     for (const row of castArray(ctx.data)) {
       const validationResult = check(row)

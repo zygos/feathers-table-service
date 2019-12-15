@@ -11,7 +11,7 @@ export default function buildColumnsFactory(safeCase: Function) {
         const typeArgs = entry.args || entry.typeArgs || []
         const isAlter = entry.doesExist
 
-        if (isAlter && (entry.unique || entry.primary || entry.references)) return
+        // if (isAlter && (entry.unique || entry.primary || entry.references)) return
 
         const column = typeof tableBuilder[type] === 'function'
           ? tableBuilder[type](columnName, ...typeArgs)
@@ -19,20 +19,32 @@ export default function buildColumnsFactory(safeCase: Function) {
 
         if (isAlter) {
           column.alter()
-        }
+        } else {
+          if (entry.unique) {
+            column.unique()
+          }
 
-        if (entry.unique) {
-          column.unique()
-        }
+          // TODO: support index types
+          if (entry.index) {
+            column.index()
+          }
 
-        if (typeof entry.primary === 'string') {
-          column.primary(entry.primary)
-        } else if (entry.primary) {
-          column.primary()
-        }
+          if (typeof entry.primary === 'string') {
+            column.primary(entry.primary)
+          } else if (entry.primary) {
+            column.primary()
+          }
 
-        if (entry.nullable === false) {
-          column.notNullable()
+          if (entry.references) {
+            const referencedColumn = column.references(safeCase(entry.references))
+            if (entry.inTable) {
+              referencedColumn.inTable(safeCase(entry.inTable))
+            }
+          }
+
+          if (entry.nullable === false) {
+            column.notNullable()
+          }
         }
 
         if (entry.comment) {
@@ -41,13 +53,6 @@ export default function buildColumnsFactory(safeCase: Function) {
 
         if (entry.unsigned) {
           column.unsigned()
-        }
-
-        if (entry.references) {
-          column.references(entry.references)
-        }
-        if (entry.inTable) {
-          column.inTable(entry.inTable)
         }
 
         if (entry.onDelete) {

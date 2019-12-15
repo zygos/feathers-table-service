@@ -8,7 +8,6 @@ export default function buildTableFactory(safeCase: Function, options: Options) 
   return async function buildTable(knex: Knex, table: Table) {
     if (!await knex.schema.hasTable(table.name)) {
       return knex.schema
-        // .createTableIfNotExists(table.name, buildColumns(table.schema))
         .createTable(table.name, buildColumns(table.schema.properties))
         .then(() => {
           return Promise.resolve()

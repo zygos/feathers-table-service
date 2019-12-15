@@ -1,6 +1,4 @@
 const patterns: { [key: string]: any } = {
-  address: /^[\p{L}\s\d\+-\/`'"\(\)]*$/u,
-  commonString: /^[\p{L}\s\d\+-/`'"\(\)]*$/u,
   name: /^[\w'\-,.]*[^0-9_!¡?÷?¿/\\+=@#$%ˆ&*(){}|~<>;:[\]]{2,}$/,
   password: /^[\w-!@#$%/^&*=+~,.;()]*$/,
   phoneNumber: /^[+\-\(\) 0-9]*$/,
@@ -36,7 +34,6 @@ export const ADDRESS = definePreset('string', {
   type: 'string',
   maxLength: 92,
   minLength: 2,
-  pattern: stringPatterns.address,
 })
 
 export const BOOL = definePreset('boolean', {
@@ -46,8 +43,16 @@ export const BOOL = definePreset('boolean', {
 export const BOOLEAN = BOOL
 
 export const DATE = definePreset('date', {
-  format: 'date',
-  maxLength: 48,
+  anyOf: [
+    {
+      format: 'date',
+      maxLength: 48,
+    },
+    {
+      format: 'date-time',
+      maxLength: 48,
+    },
+  ],
 })
 
 export const DECIMAL = definePreset('decimal', {
@@ -73,7 +78,6 @@ export const FULL_NAME = definePreset('string', {
   type: 'string',
   minLength: 1,
   maxLength: 80,
-  pattern: stringPatterns.commonString,
 })
 
 export const JSONB = definePreset('jsonb', {
@@ -152,7 +156,7 @@ export const STRING_ARRAY = definePreset('text[]', {
 
 export const NAME = definePreset('string', {
   type: 'string',
-  maxLength: 48,
+  maxLength: 80,
   pattern: stringPatterns.name,
 })
 

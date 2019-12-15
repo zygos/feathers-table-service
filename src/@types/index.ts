@@ -66,12 +66,19 @@ export type HookMethods = {
   [key in HookMethod]?: Function[]
 }
 
+export type Indexes = Array<{
+  tablename: String
+  indexname: String
+}>
+
 export type Options = {
   apiBase: string
   doAlterColumns: boolean
   doAddColumns: boolean
   doDropColumns: boolean
   doDropTables: boolean
+  doDropTablesForce: boolean
+  doMigrateIndexes: boolean
   doMigrateSchema: boolean
   doUseSnakeCase: boolean
   paginate: {
