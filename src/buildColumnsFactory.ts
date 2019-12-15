@@ -11,7 +11,7 @@ export default function buildColumnsFactory(safeCase: Function) {
         const typeArgs = entry.args || entry.typeArgs || []
         const isAlter = entry.doesExist
 
-        // if (isAlter && (entry.unique || entry.primary || entry.references)) return
+        if (isAlter && (entry.unique || entry.primary || entry.references)) return
 
         const column = typeof tableBuilder[type] === 'function'
           ? tableBuilder[type](columnName, ...typeArgs)
