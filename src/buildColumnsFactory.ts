@@ -41,10 +41,21 @@ export default function buildColumnsFactory(safeCase: Function) {
               referencedColumn.inTable(safeCase(entry.inTable))
             }
           }
+        }
 
-          if (entry.nullable === false) {
-            column.notNullable()
+        if (typeof entry.default !== 'undefined' || typeof entry.defaultTo !== 'undefined') {
+          const defaultValue = typeof entry.defaultTo === 'undefined'
+            ? entry.default
+            : entry.defaultTo
+
+          if (!(typeof entry.defaultTo === 'undefined' &&
+            Object.keys(entry).includes('defaultTo'))) {
+            column.defaultTo(defaultValue)
           }
+        }
+
+        if (entry.nullable === false) {
+          column.notNullable()
         }
 
         if (entry.comment) {
@@ -61,17 +72,6 @@ export default function buildColumnsFactory(safeCase: Function) {
 
         if (entry.onUpdate) {
           column.onUpdate(entry.onUpdate)
-        }
-
-        if (typeof entry.default !== 'undefined' || typeof entry.defaultTo !== 'undefined') {
-          const defaultValue = typeof entry.defaultTo === 'undefined'
-            ? entry.default
-            : entry.defaultTo
-
-          if (!(typeof entry.defaultTo === 'undefined' &&
-            Object.keys(entry).includes('defaultTo'))) {
-            column.defaultTo(defaultValue)
-          }
         }
       })
     }

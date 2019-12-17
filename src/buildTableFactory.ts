@@ -9,9 +9,7 @@ export default function buildTableFactory(safeCase: Function, options: Options) 
     if (!await knex.schema.hasTable(table.name)) {
       return knex.schema
         .createTable(table.name, buildColumns(table.schema.properties))
-        .then(() => {
-          return Promise.resolve()
-        })
+        .then(() => Promise.resolve())
     }
 
     function toColumns(acc: { [key: string]: any }, [fieldName, doesExist]: [string, boolean]) {

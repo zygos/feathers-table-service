@@ -11,40 +11,36 @@ const hasNoMatchingIndex = (matchingIndexArr: string[][]) =>
       columnName === matchingColumnName && constraint === matchingConstraint)
 
 export default function migrateIndexesFactory(safeCase: Function, options: Options) {
-  let constraints: Indexes
-
   return async function migrateIndexes(knex: Knex, table: Table) {
     // TODO: throw error on non postgres DB
     // TODO: migrate primary key
     // TODO: support withKeyName for indexes
 
-    if (!constraints) {
-      const indexes = (await knex.raw(`
-        SELECT tablename, indexname
-        FROM pg_indexes
-        WHERE schemaname = 'public';`))
-        .rows
-        .filter((index: any) => !index.indexname.endsWith('_pkey'))
+    const indexes = (await knex.raw(`
+      SELECT indexname
+      FROM pg_indexes
+      WHERE schemaname = 'public'
+        AND tablename = ?;`, table.name))
+      .rows
+      .filter((index: any) => !index.indexname.endsWith('_pkey'))
 
-      const foreigns = (await knex.raw(`
-        SELECT
-          table_name AS tablename,
-          constraint_name AS indexname
-        FROM information_schema.table_constraints
-        WHERE
-          constraint_type = 'FOREIGN KEY'
-          AND table_schema='public';`)).rows
+    const foreigns = (await knex.raw(`
+      SELECT constraint_name AS indexname
+      FROM information_schema.table_constraints
+      WHERE
+        constraint_type = 'FOREIGN KEY'
+        AND table_schema = 'public'
+        AND table_name = ?;`, table.name))
+      .rows
 
-      constraints = [
-        ...indexes,
-        ...foreigns,
-      ]
-    }
+    const constraints = [
+      ...indexes,
+      ...foreigns,
+    ]
 
     if (!constraints.length) return
 
     const existingIndexes = constraints
-      .filter(index => index.tablename === table.name)
       .map(index => index.indexname)
       .map(indexName => indexName.replace(`${table.name}_`, ''))
       .map(indexName => indexName.split('_'))
