@@ -32,7 +32,7 @@ function definePreset(knexType: string, template: object = {}) {
 
 export const ADDRESS = definePreset('string', {
   type: 'string',
-  maxLength: 92,
+  maxLength: 255,
   minLength: 2,
 })
 
