@@ -1,3 +1,4 @@
+import { Application } from '@feathersjs/feathers'
 import { Connection } from '@feathersjs/socket-commons'
 
 declare module '@feathersjs/feathers' {
@@ -37,6 +38,8 @@ export interface Blueprint {
   setup?: Function
   afterAll: Function
 }
+
+export type BlueprintFactory = (app: Application) => Blueprint
 
 export type EventContext = {
   connection: Connection

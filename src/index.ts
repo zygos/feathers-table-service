@@ -5,7 +5,7 @@ import buildTableFactory from './buildTableFactory'
 import formatTableSchemaFactory from './formatTableSchemaFactory'
 import inheritHooks from './inheritHooks'
 import formatSchema from './formatSchema'
-import { Blueprint, Options } from './@types'
+import { Blueprint, Options, BlueprintFactory } from './@types'
 import migrateIndexesFactory from './migrateIndexesFactory'
 import setupChannelsFactory from './setupChannelsFactory'
 import * as hooks from './hooks'
@@ -47,13 +47,20 @@ export function tableServiceFactory({
   const afterAll: Function[] = []
   let appReference: Application
 
-  const tableServiceFactory = function tableService(name: string, compactBlueprint: Blueprint) {
+  const tableServiceFactory = function tableService(
+    name: string,
+    compactBlueprint: Blueprint | BlueprintFactory,
+  ) {
     if (typeof name !== 'string') {
       throw new Error('First tableService argument is name: String')
     }
 
     return async function createService(app: Application) {
       if (!appReference) appReference = app
+
+      if (typeof compactBlueprint === 'function') {
+        compactBlueprint = compactBlueprint(app)
+      }
 
       const knex = app.get('knexClient')
 
