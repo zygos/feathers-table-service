@@ -17,7 +17,7 @@ export const PRICE_MAX = 100000000
 export const SMALLINT_MAX = 32767
 export const STRING_MAX = 65536
 
-function definePreset(knexType: string, template: object = {}) {
+export function definePreset(knexType: string, template: object = {}) {
   const typeTemplate: { [key: string]: any } = {
     knexType,
     nullable: true,

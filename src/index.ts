@@ -130,7 +130,7 @@ export function tableServiceFactory({
     }
   }
 
-  tableServiceFactory.runAfter = function runAfter() {
+  tableServiceFactory.runAfter = async function runAfter() {
     return Promise.all(afterAll.map(fn => fn(appReference)))
   }
 
