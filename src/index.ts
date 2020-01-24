@@ -78,17 +78,17 @@ export function tableServiceFactory({
 
       const blueprint = formatTableSchema(name, compactBlueprint)
 
-      const preService = blueprint.service || feathersKnex({
+      const feathersService = blueprint.service || feathersKnex({
         Model: knex,
         paginate: { ...paginate },
         ...blueprint.knex,
       })
 
-      if (!preService) throw new Error(`Could not initialize ${name}`)
+      if (!feathersService) throw new Error(`Could not initialize ${name}`)
 
       const serviceChain = [
         ...castArray((blueprint.middleware || {}).before || []),
-        ...castArray(preService),
+        ...castArray(feathersService),
         ...castArray((blueprint.middleware || {}).after || []),
       ]
 
@@ -125,7 +125,7 @@ export function tableServiceFactory({
       }
 
       if (blueprint.setup) {
-        await blueprint.setup(app)
+        await blueprint.setup(app, feathersService)
       }
 
       if (blueprint.afterAll) {
