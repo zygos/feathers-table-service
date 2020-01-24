@@ -78,11 +78,21 @@ export function tableServiceFactory({
 
       const blueprint = formatTableSchema(name, compactBlueprint)
 
-      const feathersService = blueprint.service || feathersKnex({
-        Model: knex,
-        paginate: { ...paginate },
-        ...blueprint.knex,
-      })
+      const feathersService = (() => {
+        const rawService = blueprint.service || feathersKnex({
+          Model: knex,
+          paginate: { ...paginate },
+          ...blueprint.knex,
+        })
+
+        if (!blueprint.extend || typeof rawService.extend !== 'function') return rawService
+
+        const serviceExtension = typeof blueprint.extend === 'function'
+          ? blueprint.extend(app)
+          : blueprint.extend
+
+        return rawService.extend(serviceExtension)
+      })()
 
       if (!feathersService) throw new Error(`Could not initialize ${name}`)
 

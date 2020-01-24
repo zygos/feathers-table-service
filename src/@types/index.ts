@@ -38,6 +38,7 @@ export interface Blueprint {
     before?: Function | Function[],
     after?: Function | Function[],
   },
+  extend?: Object | Function,
   table?: Table
   setup?: Function
   afterAll: Function
