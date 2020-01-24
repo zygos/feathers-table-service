@@ -7,27 +7,27 @@ import { BadRequest } from '@feathersjs/errors'
 export default function validateTableSchemaFactory(
   validator: Validator,
 ) {
-    return (tableSchema: TableSchema) => {
-      if (typeof tableSchema.app !== 'undefined') {
-        throw new Error('Hook called without a schema')
+  return (tableSchema: TableSchema) => {
+    if (typeof tableSchema.app !== 'undefined') {
+      throw new Error('Hook called without a schema')
+    }
+
+    const validations = validationsFactory(tableSchema, validator)
+    const transforms = transformsFactory(tableSchema.properties)
+
+    return function validateTableSchema(ctx: HookContext) {
+      if (typeof ctx.data === 'undefined') return ctx
+
+      const validation = validations(ctx)
+      if (validation !== true) {
+        throw new BadRequest('Invalid data', {
+          errors: validation,
+        })
       }
 
-      const validations = validationsFactory(tableSchema, validator)
-      const transforms = transformsFactory(tableSchema.properties)
+      transforms(ctx)
 
-      return function validateTableSchema(ctx: HookContext) {
-        if (typeof ctx.data === 'undefined') return ctx
-
-        const validation = validations(ctx)
-        if (validation !== true) {
-          throw new BadRequest('Invalid data', {
-            errors: validation,
-          })
-        }
-
-        transforms(ctx)
-
-        return ctx
-      }
+      return ctx
     }
   }
+}

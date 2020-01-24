@@ -86,7 +86,13 @@ export function tableServiceFactory({
 
       if (!preService) throw new Error(`Could not initialize ${name}`)
 
-      const service = (app.registerService as any)(name, ...castArray(preService))
+      const serviceChain = [
+        ...castArray((blueprint.middleware || {}).before || []),
+        ...castArray(preService),
+        ...castArray((blueprint.middleware || {}).after || []),
+      ]
+
+      const service = (app.registerService as any)(name, ...serviceChain)
 
       if (blueprint.hooks) {
         service.hooks(inheritHooks(blueprint.hooks))

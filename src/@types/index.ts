@@ -34,6 +34,10 @@ export interface Blueprint {
     }
   }
   service?: any
+  middleware?: {
+    before?: Function | Function[],
+    after?: Function | Function[],
+  },
   table?: Table
   setup?: Function
   afterAll: Function

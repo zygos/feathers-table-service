@@ -47,8 +47,8 @@ export default function setupChannelsFactory(app: Application) {
           channels[event](payload, {
             app,
             service,
-            user: (context.connection && context.connection.user) ?
-              context.connection.user
+            user: (context.connection && context.connection.user)
+              ? context.connection.user
               : null,
             ...context,
           }))
