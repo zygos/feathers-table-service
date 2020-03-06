@@ -7,8 +7,11 @@ declare module '@feathersjs/feathers' {
   }
 
   interface Application<ServiceTypes = {}> {
-    registerService(name: string, service: any): any
     getService(name: string): any
+    registerService(name: string, service: any): any
+
+    getTableSchema(name: string): TableSchema
+    setTableSchema(name: string, schema: TableSchema): void
 
     logger: Logger
   }

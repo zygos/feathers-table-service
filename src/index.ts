@@ -5,7 +5,7 @@ import buildTableFactory from './buildTableFactory'
 import formatTableSchemaFactory from './formatTableSchemaFactory'
 import inheritHooks from './inheritHooks'
 import formatSchema from './formatSchema'
-import { Blueprint, Options, BlueprintFactory } from './@types'
+import { Blueprint, Options, BlueprintFactory, TableSchema } from './@types'
 import migrateIndexesFactory from './migrateIndexesFactory'
 import setupChannelsFactory from './setupChannelsFactory'
 import * as hooks from './hooks'
@@ -68,11 +68,16 @@ export function tableServiceFactory({
         app.getService = function getService(name) {
           return app.service(`${apiBase}${name}`)
         }
-
         app.registerService = function registerService(name: string, ...service) {
           const path = `${apiBase}${name}`
           app.use(path, ...service)
           return app.getService(name)
+        }
+        app.getTableSchema = function getTableSchema(name) {
+          return app.get(`tableService.schema.${name}`)
+        }
+        app.setTableSchema = function setTableSchema(name: String, schema: TableSchema) {
+          app.set(`tableService.schema.${name}`, schema)
         }
       }
 
@@ -114,6 +119,7 @@ export function tableServiceFactory({
 
       if (blueprint.table) {
         blueprint.table.schema = formatSchema(blueprint.table.schema)
+        app.setTableSchema(name, blueprint.table.schema)
 
         if (doMigrateSchema) {
           if (doDropTables) {
@@ -138,8 +144,20 @@ export function tableServiceFactory({
         await blueprint.setup(app, feathersService)
       }
 
+      app.emit(`tableService.${name}.setup`)
+
+      if (feathersService.emit) {
+        feathersService.emit('setup')
+      }
+
       if (blueprint.afterAll) {
         afterAll.push(blueprint.afterAll)
+      }
+
+      app.emit(`tableService.${name}.ready`)
+
+      if (feathersService.emit) {
+        feathersService.emit('ready')
       }
 
       return service
