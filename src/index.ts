@@ -164,8 +164,12 @@ export function tableServiceFactory({
     }
   }
 
-  tableServiceFactory.runAfter = async function runAfter() {
-    return Promise.all(afterAll.map(fn => fn(appReference)))
+  tableServiceFactory.runAfter = async function runAfter(app: Application | void) {
+    const result = await Promise.all(afterAll.map(fn => fn(appReference)))
+
+    if (app && app.emit) app.emit('ready')
+
+    return result
   }
 
   return tableServiceFactory
