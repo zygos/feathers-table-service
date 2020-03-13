@@ -4,9 +4,8 @@ const maybeCall = (fn: any) => typeof fn === 'function' ? fn() : fn
 
 const defaultField = {
   comment: null,
-  foreign: false,
+  foreign: null,
   index: false,
-  inTable: null,
   nullable: true,
   onDelete: null,
   onUpdate: null,

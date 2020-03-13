@@ -1,5 +1,5 @@
 import { Application } from '@feathersjs/feathers'
-import { snakeCase } from 'change-case'
+import { snakeCase, snake } from 'change-case'
 import feathersKnex from 'feathers-knex'
 import buildTableFactory from './buildTableFactory'
 import formatTableSchemaFactory from './formatTableSchemaFactory'
@@ -40,7 +40,19 @@ export function tableServiceFactory({
     paginate,
   }
 
-  const safeCase = (str: string): string => doUseSnakeCase ? snakeCase(str) : str
+  const safeCase = (str: string, doOverwriteDot = false): string => {
+    if (!doUseSnakeCase) return str
+
+    if (!doOverwriteDot && str.includes('.')) {
+      return str
+        .split('.')
+        .map(substring => snakeCase(substring))
+        .join('.')
+    }
+
+    return snakeCase(str)
+  }
+
   const formatTableSchema = formatTableSchemaFactory(safeCase)
   const buildTable = buildTableFactory(safeCase, options)
   const migrateIndexes = migrateIndexesFactory(safeCase, options)

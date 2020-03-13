@@ -1,5 +1,6 @@
 import Knex from 'knex'
 import { TableSchemaProperties } from './@types'
+import { isPlainObject } from './utils'
 
 export default function buildColumnsFactory(safeCase: Function) {
   return function buildColumns(properties: TableSchemaProperties) {
@@ -20,14 +21,33 @@ export default function buildColumnsFactory(safeCase: Function) {
         if (isAlter) {
           column.alter()
         } else {
-          if (entry.unique) {
-            column.unique()
-          }
+          // if (entry.unique) {
+          //   if (entry.unique === true) {
+          //     column.unique()
+          //   } else if (Array.isArray(entry.unique)) {
+          //     tableBuilder.unique(entry.unique)
+          //   } else if (isPlainObject(entry.unique)) {
+          //     if (entry.unique.columns) {
+          //       tableBuilder.unique(entry.unique.columns, entry.unique.name)
+          //     } else {
+          //       column.unique(entry.unique.name)
+          //     }
+          //   }
+          // }
 
-          // TODO: support index types
-          if (entry.index) {
-            column.index()
-          }
+          // if (entry.index) {
+          //   if (entry.index === true) {
+          //     column.index()
+          //   } else if (Array.isArray(entry.index)) {
+          //     tableBuilder.index(entry.index)
+          //   } else if (isPlainObject(entry.index)) {
+          //     if (entry.index.columns) {
+          //       tableBuilder.index(entry.index.columns, entry.index.name, entry.index.type)
+          //     } else {
+          //       column.index(entry.index.name, entry.index.type)
+          //     }
+          //   }
+          // }
 
           if (typeof entry.primary === 'string') {
             column.primary(entry.primary)
@@ -35,12 +55,12 @@ export default function buildColumnsFactory(safeCase: Function) {
             column.primary()
           }
 
-          if (entry.references) {
-            const referencedColumn = column.references(safeCase(entry.references))
-            if (entry.inTable) {
-              referencedColumn.inTable(safeCase(entry.inTable))
-            }
-          }
+          // if (entry.references) {
+          //   const referencedColumn = column.references(safeCase(entry.references))
+          //   if (entry.inTable) {
+          //     referencedColumn.inTable(safeCase(entry.inTable))
+          //   }
+          // }
         }
 
         if (typeof entry.default !== 'undefined' || typeof entry.defaultTo !== 'undefined') {

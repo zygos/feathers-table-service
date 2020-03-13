@@ -121,3 +121,10 @@ export interface Validator {
   [key: string]: any
   compile: Function
 }
+
+export interface ConstraintDefinition {
+  dropKey?: String,
+  format: Function,
+  getExisting: Function,
+  isSame: Function,
+}

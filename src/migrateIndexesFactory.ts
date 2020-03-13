@@ -1,14 +1,17 @@
-import { Indexes, Options, Table } from './@types'
+import { Options, Table } from './@types'
 import Knex from 'knex'
+import { constraintTypes, constraintTypesKeys } from './constraints'
+import { capitalize, uncastArray } from './utils'
 
-function capitalize(str: string) {
-  return str.charAt(0).toUpperCase() + str.slice(1)
+function hasNoMatchingConstraint(matchingIndexArr: string[][]) {
+  return ([columnName, constraintTypeKey, constraint]: string[]) => {
+    return !matchingIndexArr
+      .some(([anotherColumnName, anotherConstraintTypeKey, anotherConstraint]) => {
+        return constraintTypeKey === anotherConstraintTypeKey &&
+          constraintTypes[constraintTypeKey].isSame(constraint, anotherConstraint)
+      })
+  }
 }
-
-const hasNoMatchingIndex = (matchingIndexArr: string[][]) =>
-  ([columnName, constraint]: string[]) => !matchingIndexArr
-    .some(([matchingColumnName, matchingConstraint]) =>
-      columnName === matchingColumnName && constraint === matchingConstraint)
 
 export default function migrateIndexesFactory(safeCase: Function, options: Options) {
   return async function migrateIndexes(knex: Knex, table: Table) {
@@ -16,71 +19,61 @@ export default function migrateIndexesFactory(safeCase: Function, options: Optio
     // TODO: migrate primary key
     // TODO: support withKeyName for indexes
 
-    const indexes = (await knex.raw(`
-      SELECT indexname
-      FROM pg_indexes
-      WHERE schemaname = 'public'
-        AND tablename = ?;`, table.name))
-      .rows
-      .filter((index: any) => !index.indexname.endsWith('_pkey'))
-
-    const foreigns = (await knex.raw(`
-      SELECT constraint_name AS indexname
-      FROM information_schema.table_constraints
-      WHERE
-        constraint_type = 'FOREIGN KEY'
-        AND table_schema = 'public'
-        AND table_name = ?;`, table.name))
-      .rows
-
-    const constraints = [
-      ...indexes,
-      ...foreigns,
-    ]
-
-    if (!constraints.length) return
-
-    const existingIndexes = constraints
-      .map(index => index.indexname)
-      .map(indexName => indexName.replace(`${table.name}_`, ''))
-      .map(indexName => indexName.split('_'))
-      .map(indexSplit => [indexSplit.slice(0, -1).join('_'), indexSplit.slice(-1)[0]])
-
-    const constraintTypes = ['foreign', 'unique', 'index']
-    const wantedIndexes = Object
+    const indexes = await constraintTypes.index.getExisting(knex, table.name)
+    const references = await constraintTypes.references.getExisting(knex, table.name)
+    const existingConstraints = [...indexes, ...references]
+    const wantedConstraints = Object
       .entries(table.schema.properties)
-      .filter(([_, field]) => constraintTypes.some(constraintType => !!field[constraintType]))
+      .filter(([_, field]) => constraintTypesKeys
+        .some(constraintTypeKey => !!field[constraintTypeKey]))
       .map(([key, field]) => [safeCase(key), field])
-      .flatMap(([columnName, field]) => constraintTypes
-        .filter(constraintType => field[constraintType])
-        .map(constraintType => [columnName, constraintType, field]))
+      .flatMap(([columnName, field]) => constraintTypesKeys
+        .filter(constraintTypeKey => field[constraintTypeKey])
+        .map((constraintTypeKey) => {
+          const constraintType = constraintTypes[constraintTypeKey]
+          const constraint = constraintType
+            .format(table.name, columnName, field[constraintTypeKey], field, safeCase)
+
+          return [columnName, constraintTypeKey, constraint]
+        }))
       .filter(index => !!index)
 
-    const addIndexes = wantedIndexes.filter(hasNoMatchingIndex(existingIndexes))
-    const dropIndexes = existingIndexes.filter(hasNoMatchingIndex(wantedIndexes))
+    if (!existingConstraints.length && !wantedConstraints.length) return
 
-    if (dropIndexes.length) {
+    const addConstraints: any[] = wantedConstraints
+      .filter(hasNoMatchingConstraint(existingConstraints))
+    const dropConstraints: any[] = existingConstraints
+      .filter(hasNoMatchingConstraint(wantedConstraints))
+
+    if (dropConstraints.length) {
       await knex.schema.alterTable(table.name, (tableBuilder: Knex.TableBuilder) => {
-        dropIndexes.forEach(([columnName, constraintType]) => {
-          tableBuilder[`drop${capitalize(constraintType)}`](columnName)
+        dropConstraints.forEach(([columnName, constraintTypeKey, constraint]) => {
+          const dropKey = constraintTypes[constraintTypeKey].dropKey ||
+            `drop${capitalize(constraintTypeKey)}`
+
+          tableBuilder[`${dropKey}`](null, constraint.name)
         })
       })
     }
 
-    if (addIndexes.length) {
+    if (addConstraints.length) {
       await knex.schema.alterTable(table.name, (tableBuilder: Knex.TableBuilder) => {
-        addIndexes.forEach(([columnName, constraintType, field]) => {
-          const addIndex = tableBuilder[constraintType](columnName)
+        addConstraints.forEach(([columnName, constraintType, constraint]) => {
+          const columnsArgument = uncastArray(constraint.columns)
 
-          if (constraintType === 'foreign') {
-            const referenceIndex = addIndex.references(safeCase(field.references))
-            const inTableIndex = field.inTable
-              ? referenceIndex.inTable(safeCase(field.inTable))
-              : referenceIndex
+          if (constraintType === 'references') {
+            const referencesArgument = uncastArray(constraint.references)
+            const reference: any = tableBuilder
+              .foreign(columnsArgument, constraint.name)
+              .references(referencesArgument)
 
             ;['onDelete', 'onUpdate']
-              .filter(cascadeEvent => field[cascadeEvent])
-              .forEach(cascadeEvent => inTableIndex[cascadeEvent](field[cascadeEvent]))
+              .filter(cascadeEvent => constraint[cascadeEvent])
+              .forEach(cascadeEvent => reference[cascadeEvent](constraint[cascadeEvent]))
+          } else if (constraintType === 'unique') {
+            tableBuilder.unique(columnsArgument, constraint.name)
+          } else if (constraintType === 'index') {
+            tableBuilder.index(columnsArgument, constraint.name, constraint.type)
           }
         })
       })
