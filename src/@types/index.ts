@@ -13,6 +13,13 @@ declare module '@feathersjs/feathers' {
     getTableSchema(name: string): TableSchema
     setTableSchema(name: string, schema: TableSchema): void
 
+    tableService: {
+      afterAllDone: {
+        [key: string]: any
+      }
+      afterAll: Function
+    }
+
     logger: Logger
   }
 }

@@ -1,5 +1,5 @@
 import { Application } from '@feathersjs/feathers'
-import { snakeCase, snake } from 'change-case'
+import { snakeCase } from 'change-case'
 import feathersKnex from 'feathers-knex'
 import buildTableFactory from './buildTableFactory'
 import formatTableSchemaFactory from './formatTableSchemaFactory'
@@ -56,7 +56,7 @@ export function tableServiceFactory({
   const formatTableSchema = formatTableSchemaFactory(safeCase)
   const buildTable = buildTableFactory(safeCase, options)
   const migrateIndexes = migrateIndexesFactory(safeCase, options)
-  const afterAll: Function[] = []
+  const afterAll: [string, Function][] = []
   let appReference: Application
 
   const tableServiceFactory = function tableService(
@@ -85,11 +85,36 @@ export function tableServiceFactory({
           app.use(path, ...service)
           return app.getService(name)
         }
-        app.getTableSchema = function getTableSchema(name) {
+        app.getTableSchema = function getTableSchema(name: string) {
           return app.get(`tableService.schema.${name}`)
         }
-        app.setTableSchema = function setTableSchema(name: String, schema: TableSchema) {
+        app.setTableSchema = function setTableSchema(name: string, schema: TableSchema) {
           app.set(`tableService.schema.${name}`, schema)
+        }
+        app.tableService = {
+          afterAllDone: {},
+          async afterAll(...serviceNames: string[]) {
+            const isEveryDone = () => {
+              const doneKeys = Object.keys(app.tableService.afterAllDone)
+
+              return serviceNames.every(serviceName => doneKeys.includes(serviceName))
+            }
+
+            const getDoneResults = () => serviceNames
+              .map(serviceName => app.tableService.afterAllDone[serviceName])
+
+            if (isEveryDone()) return getDoneResults()
+
+            return new Promise((resolve) => {
+              app.on('tableService.afterAll', ({ serviceName: resolvedServiceName, results }) => {
+                if (!app.tableService.afterAllDone[resolvedServiceName]) {
+                  app.tableService.afterAllDone[resolvedServiceName] = results
+                }
+
+                if (isEveryDone()) resolve(getDoneResults())
+              })
+            })
+          },
         }
       }
 
@@ -163,7 +188,7 @@ export function tableServiceFactory({
       }
 
       if (blueprint.afterAll) {
-        afterAll.push(blueprint.afterAll)
+        afterAll.push([name, blueprint.afterAll])
       }
 
       app.emit(`tableService.${name}.ready`)
@@ -177,9 +202,23 @@ export function tableServiceFactory({
   }
 
   tableServiceFactory.runAfter = async function runAfter(app: Application | void) {
-    const result = await Promise.all(afterAll.map(fn => fn(appReference)))
+    const result = await Promise.all(afterAll.map(async([serviceName, seedFunction]) => {
+      const results = await seedFunction(appReference)
 
-    if (app && app.emit) app.emit('ready')
+      if (app) {
+        app.emit('tableService.afterAll', {
+          serviceName,
+          results,
+        })
+      }
+    }))
+
+    if (app && app.emit) {
+      // TODO: deprecate 'ready' in favour of 'tableService.ready'
+      app.emit('ready')
+      app.emit('tableService.ready')
+      app.removeAllListeners('tableService.afterAll')
+    }
 
     return result
   }

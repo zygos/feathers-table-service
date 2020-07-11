@@ -8,12 +8,13 @@ function invalidConstraintError(constraintTypeName: String, tableName: String, c
 
 function areVirtuallySameArrays(array1: string[], array2: string[]) {
   return Array.isArray(array1) &&
-    Array.isArray(array2) &&
-    array1.length === array2.length &&
-    array1.every(element => array2.includes(element)) &&
-    array2.every(element => array1.includes(element))
+  Array.isArray(array2) &&
+  array1.length === array2.length &&
+  array1.every(element => array2.includes(element)) &&
+  array2.every(element => array1.includes(element))
 }
 
+// TODO: migrate nullable constraints
 export const constraintTypes: { [key: string]: ConstraintDefinition } = {
   references: {
     dropKey: 'dropForeign',
