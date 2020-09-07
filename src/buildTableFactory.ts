@@ -6,6 +6,10 @@ export default function buildTableFactory(safeCase: CaseFunction, options: Optio
   const buildColumns = buildColumnsFactory(safeCase)
 
   return async function buildTable(knex: Knex, table: Table) {
+    const propertiesColumns = Object.fromEntries(Object
+      .entries(table.schema.properties)
+      .map(([propertyName, property]) => [safeCase(propertyName), property]))
+
     if (!await knex.schema.hasTable(table.name)) {
       return knex.schema
         .createTable(table.name, buildColumns(table.schema.properties))
@@ -15,7 +19,7 @@ export default function buildTableFactory(safeCase: CaseFunction, options: Optio
     function toColumns(acc: { [key: string]: any }, [fieldName, doesExist]: [string, boolean]) {
       if (typeof fieldName === 'string') {
         acc[fieldName] = {
-          ...table.schema.properties[fieldName],
+          ...propertiesColumns[fieldName],
           doesExist,
         }
       }
@@ -23,11 +27,12 @@ export default function buildTableFactory(safeCase: CaseFunction, options: Optio
       return acc
     }
 
-    const columnsStates: [string, boolean][] = await Promise.all(Object
-      .keys(table.schema.properties)
-      .map(fieldName => knex.schema
-        .hasColumn(table.name, safeCase(fieldName))
-        .then(hasColumn => [safeCase(fieldName), hasColumn])))
+    const columnNames = Object.keys(propertiesColumns)
+
+    const columnsStates: [string, boolean][] = await Promise.all(columnNames
+      .map(columnName => knex.schema
+        .hasColumn(table.name, columnName)
+        .then(hasColumn => [columnName, hasColumn])))
 
     if (options.doAlterColumns) {
       const columnsToAlter = columnsStates
@@ -47,11 +52,9 @@ export default function buildTableFactory(safeCase: CaseFunction, options: Optio
 
     if (options.doDropColumns) {
       const columnInfo = await knex(table.name).columnInfo()
-      const fieldsInSchema = Object.keys(table.schema.properties)
-
       const columnsToDrop = Object
         .keys(columnInfo)
-        .filter(columnName => !fieldsInSchema.includes(columnName))
+        .filter(columnName => !columnNames.includes(columnName))
 
       if (columnsToDrop.length) {
         await knex.schema.alterTable(table.name, (table) => {
