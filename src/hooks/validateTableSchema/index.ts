@@ -2,7 +2,7 @@ import { HookContext } from '@feathersjs/feathers'
 import { TableSchema, Validator } from '../../@types'
 import transformsFactory from './transformsFactory'
 import validationsFactory from './validationsFactory'
-import { BadRequest } from '@feathersjs/errors'
+import { Unprocessable } from '@feathersjs/errors'
 
 export default function validateTableSchemaFactory(
   validator: Validator,
@@ -20,7 +20,7 @@ export default function validateTableSchemaFactory(
 
       const validation = validations(ctx)
       if (validation !== true) {
-        throw new BadRequest('Invalid data', {
+        throw new Unprocessable('Invalid data', {
           errors: validation,
         })
       }

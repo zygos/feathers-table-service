@@ -135,3 +135,5 @@ export interface ConstraintDefinition {
   getExisting: Function,
   isSame: Function,
 }
+
+export type CaseFunction = (name: string | String, doOverwriteDot?: boolean) => string

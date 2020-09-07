@@ -1,4 +1,4 @@
-import { ConstraintDefinition } from './@types'
+import { CaseFunction, ConstraintDefinition } from './@types'
 import { isPlainObject, castArray } from './utils'
 import Knex = require('knex')
 
@@ -18,7 +18,7 @@ function areVirtuallySameArrays(array1: string[], array2: string[]) {
 export const constraintTypes: { [key: string]: ConstraintDefinition } = {
   references: {
     dropKey: 'dropForeign',
-    format(tableName: String, columnName: String, constraint: any, _: any, safeCase: Function) {
+    format(tableName: String, columnName: String, constraint: any, _: any, safeCase: CaseFunction) {
       const defaultConstraint = {
         columns: [safeCase(columnName)],
         name: `${tableName}_${safeCase(columnName)}_foreign`,
@@ -108,7 +108,7 @@ export const constraintTypes: { [key: string]: ConstraintDefinition } = {
   },
 
   index: {
-    format(tableName: String, columnName: String, constraint: any, _: any, safeCase: Function) {
+    format(tableName: String, columnName: String, constraint: any, _: any, safeCase: CaseFunction) {
       const defaultConstraint = {
         columns: [safeCase(columnName)],
         type: 'btree',
@@ -182,7 +182,7 @@ export const constraintTypes: { [key: string]: ConstraintDefinition } = {
   },
 
   unique: {
-    format(tableName: String, columnName: String, constraint: any, _: any, safeCase: Function) {
+    format(tableName: String, columnName: String, constraint: any, _: any, safeCase: CaseFunction) {
       const defaultConstraint = {
         columns: [safeCase(columnName)],
         name: `${tableName}_${safeCase(columnName)}_unique`,
@@ -238,7 +238,7 @@ export function inferNames(constraintName: String, tableName: String): [string, 
   ]
 }
 
-function joinWithSafeCase(array: string[], safeCase: Function, { prefix, suffix }: any) {
+function joinWithSafeCase(array: string[], safeCase: CaseFunction, { prefix, suffix }: any) {
   return [
     prefix,
     ...array

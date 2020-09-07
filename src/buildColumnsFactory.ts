@@ -1,8 +1,8 @@
 import Knex from 'knex'
-import { TableSchemaProperties } from './@types'
+import { CaseFunction, TableSchemaProperties } from './@types'
 import { isPlainObject } from './utils'
 
-export default function buildColumnsFactory(safeCase: Function) {
+export default function buildColumnsFactory(safeCase: CaseFunction) {
   return function buildColumns(properties: TableSchemaProperties) {
     return (tableBuilder: Knex.TableBuilder) => {
       Object.keys(properties).forEach((name) => {

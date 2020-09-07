@@ -40,8 +40,8 @@ export function tableServiceFactory({
     paginate,
   }
 
-  const safeCase = (str: string, doOverwriteDot = false): string => {
-    if (!doUseSnakeCase) return str
+  const safeCase = (str: string | String, doOverwriteDot = false): string => {
+    if (!doUseSnakeCase) return str.toString()
 
     if (!doOverwriteDot && str.includes('.')) {
       return str
@@ -50,7 +50,7 @@ export function tableServiceFactory({
         .join('.')
     }
 
-    return snakeCase(str)
+    return snakeCase(str.toString())
   }
 
   const formatTableSchema = formatTableSchemaFactory(safeCase)

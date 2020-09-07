@@ -1,8 +1,8 @@
+import { CaseFunction, Options, Table } from './@types'
 import Knex from 'knex'
 import buildColumnsFactory from './buildColumnsFactory'
-import { Table, Options } from './@types'
 
-export default function buildTableFactory(safeCase: Function, options: Options) {
+export default function buildTableFactory(safeCase: CaseFunction, options: Options) {
   const buildColumns = buildColumnsFactory(safeCase)
 
   return async function buildTable(knex: Knex, table: Table) {
@@ -27,7 +27,7 @@ export default function buildTableFactory(safeCase: Function, options: Options) 
       .keys(table.schema.properties)
       .map(fieldName => knex.schema
         .hasColumn(table.name, safeCase(fieldName))
-        .then(hasColumn => [fieldName, hasColumn])))
+        .then(hasColumn => [safeCase(fieldName), hasColumn])))
 
     if (options.doAlterColumns) {
       const columnsToAlter = columnsStates
