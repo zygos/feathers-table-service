@@ -1,6 +1,6 @@
 import { Application } from '@feathersjs/feathers'
 import { snakeCase } from 'change-case'
-import feathersKnex from 'feathers-knex'
+import feathersKnexMain from 'feathers-knex'
 import buildTableFactory from './buildTableFactory'
 import formatTableSchemaFactory from './formatTableSchemaFactory'
 import inheritHooks from './inheritHooks'
@@ -25,6 +25,7 @@ export function tableServiceFactory({
   doMigrateIndexes = false,
   doMigrateSchema = true,
   doUseSnakeCase = false,
+  feathersKnex = feathersKnexMain,
   paginate = { default: 10, max: 50 },
 }: Options) {
   const options = {

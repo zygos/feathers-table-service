@@ -91,14 +91,15 @@ export type Indexes = Array<{
 
 export type Options = {
   apiBase: string
-  doAlterColumns: boolean
   doAddColumns: boolean
+  doAlterColumns: boolean
   doDropColumns: boolean
   doDropTables: boolean
   doDropTablesForce: boolean
   doMigrateIndexes: boolean
   doMigrateSchema: boolean
   doUseSnakeCase: boolean
+  feathersKnex?: any
   paginate: {
     default: number
     max: number
