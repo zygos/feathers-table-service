@@ -35,9 +35,9 @@ export default function inheritHooks(extendedHooks: ServiceHooks, globalHooks: G
       const hooksOfType = extendedHooks[hookType] || none
       const hooksOfTypeGlobal = globalHooks[hookType] || none
       const hooksOfTypeGlobalFinal = (globalHooks[getHookTypeFinal(hookType)] || none)
-      const hookMethodsCustom = Object
-        .keys(hooksOfType)
-        .filter((key: any) => !hookMethods.includes(key))
+      // const hookMethodsCustom = Object
+      //   .keys(hooksOfType)
+      //   .filter((key: any) => !hookMethods.includes(key))
 
       return [
         hookType,
@@ -62,7 +62,7 @@ export default function inheritHooks(extendedHooks: ServiceHooks, globalHooks: G
                 ].flatMap(array => wrapArray(array)),
               ]
             }),
-          ...Object.entries(hookMethodsCustom),
+          // ...hookMethodsCustom.map(key => [key, hooksOfType[key]]),
         ]),
       ]
     }))

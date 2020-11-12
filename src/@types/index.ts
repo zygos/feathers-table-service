@@ -125,7 +125,7 @@ export type TableSchemaProperties = {
 }
 
 export type ServiceHooks = {
-  [key in HookType]?: HookMethods
+  [key in HookType]?: HookMethods,
 }
 
 export type GlobalHooks = {
