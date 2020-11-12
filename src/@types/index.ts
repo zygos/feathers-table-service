@@ -68,7 +68,7 @@ export interface Logger {
   fatal(message: string, ...interpolationValues: any[]): void
 }
 
-export type HookType = 'before' | 'after' | 'error'
+export type HookType = 'before' | 'after' | 'error' | 'finally'
 export type HookTypeFinal = 'beforeFinal' | 'afterFinal' | 'errorFinal' | 'unknown'
 
 export type HookMethod = 'all'
@@ -136,6 +136,7 @@ export type GlobalHooks = {
   error?: HookMethods,
   errorFinal?: HookMethods,
   unknown?: HookMethods
+  finally?: HookMethods
 }
 
 export interface Validator {

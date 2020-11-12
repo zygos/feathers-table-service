@@ -8,8 +8,8 @@ import {
 } from './@types'
 import { castArray } from './utils'
 
-const hookTypes: HookType[] = ['before', 'after', 'error']
-const hookMethods: HookMethod[] = ['create', 'patch', 'update', 'find', 'get']
+const hookTypes: HookType[] = ['before', 'after', 'error', 'finally']
+const hookMethods: HookMethod[] = ['all', 'create', 'patch', 'update', 'find', 'get']
 const ALL_SET: HookMethod = 'allSet'
 const ALL_GET: HookMethod = 'allGet'
 const compoundHookMethodsKeys: HookMethod[] = [ALL_GET, ALL_SET]
@@ -35,30 +35,35 @@ export default function inheritHooks(extendedHooks: ServiceHooks, globalHooks: G
       const hooksOfType = extendedHooks[hookType] || none
       const hooksOfTypeGlobal = globalHooks[hookType] || none
       const hooksOfTypeGlobalFinal = (globalHooks[getHookTypeFinal(hookType)] || none)
+      const hookMethodsCustom = Object
+        .keys(hooksOfType)
+        .filter((key: any) => !hookMethods.includes(key))
 
       return [
         hookType,
-        Object.fromEntries(hookMethods
-          .filter(hookMethod => !compoundHookMethodsKeys.includes(hookMethod))
-          .map((hookMethod) => {
-            const compoundKey = methodCompounds.get(hookMethod)
-            const hooksCompounded = getCompounded(hooksOfType, compoundKey)
-            const hooksGlobalCompounded = getCompounded(hooksOfTypeGlobal, compoundKey)
-            const hooksGlobalFinalCompounded = getCompounded(hooksOfTypeGlobalFinal, compoundKey)
+        Object.fromEntries([
+          ...hookMethods
+            .filter(hookMethod => !compoundHookMethodsKeys.includes(hookMethod))
+            .map((hookMethod) => {
+              const compoundKey = methodCompounds.get(hookMethod)
+              const hooksCompounded = getCompounded(hooksOfType, compoundKey)
+              const hooksGlobalCompounded = getCompounded(hooksOfTypeGlobal, compoundKey)
+              const hooksGlobalFinalCompounded = getCompounded(hooksOfTypeGlobalFinal, compoundKey)
 
-            return [
-              hookMethod,
-              [
-                hooksGlobalCompounded, // global allSet
-                hooksOfTypeGlobal[hookMethod], // global create
-                hooksCompounded, // allSet
-                hooksOfType[hookMethod], // create
-                hooksGlobalFinalCompounded, // global allSetFinal
-                hooksOfTypeGlobalFinal[hookMethod], // global createFinal
-              ].flatMap(array => wrapArray(array)),
-            ]
-          }),
-        ),
+              return [
+                hookMethod,
+                [
+                  hooksGlobalCompounded, // global allSet
+                  hooksOfTypeGlobal[hookMethod], // global create
+                  hooksCompounded, // allSet
+                  hooksOfType[hookMethod], // create
+                  hooksGlobalFinalCompounded, // global allSetFinal
+                  hooksOfTypeGlobalFinal[hookMethod], // global createFinal
+                ].flatMap(array => wrapArray(array)),
+              ]
+            }),
+          ...Object.entries(hookMethodsCustom),
+        ]),
       ]
     }))
 }
