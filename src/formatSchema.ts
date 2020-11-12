@@ -1,6 +1,6 @@
 import { TableSchema } from './@types'
+import { maybeCall } from './utils'
 
-const maybeCall = (fn: any) => typeof fn === 'function' ? fn() : fn
 
 const defaultField = {
   comment: null,

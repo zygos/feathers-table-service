@@ -83,16 +83,18 @@ export const constraintTypes: { [key: string]: ConstraintDefinition } = {
         .map((foreignKey: any) => [
           foreignKey.columnName,
           'references',
-          {
-            // TODO: test multi-column foreign keys
-            columns: [foreignKey.columnName],
-            references: [`${foreignKey.foreignTableName}.${foreignKey.foreignColumnName}`],
-            name: foreignKey.constraintName,
+          [
+            {
+              // TODO: test multi-column foreign keys
+              columns: [foreignKey.columnName],
+              references: [`${foreignKey.foreignTableName}.${foreignKey.foreignColumnName}`],
+              name: foreignKey.constraintName,
 
-            // TODO: add
-            onDelete: null,
-            onUpdate: null,
-          },
+              // TODO: add
+              onDelete: null,
+              onUpdate: null,
+            },
+          ],
         ])
     },
     isSame(a: any, b: any) {
@@ -166,11 +168,13 @@ export const constraintTypes: { [key: string]: ConstraintDefinition } = {
           return [
             columnName,
             constraintType,
-            {
-              columns,
-              type: indexType,
-              name: index.indexname,
-            },
+            [
+              {
+                columns,
+                type: indexType,
+                name: index.indexname,
+              },
+            ],
           ]
         })
     },
@@ -193,6 +197,10 @@ export const constraintTypes: { [key: string]: ConstraintDefinition } = {
       }
 
       if (Array.isArray(constraint)) {
+        if (constraint.some(constraintColumn => typeof constraintColumn !== 'string')) {
+          throw new TypeError('Unique contraint column names must be strings')
+        }
+
         return {
           ...defaultConstraint,
           columns: constraint.map(column => safeCase(column)),

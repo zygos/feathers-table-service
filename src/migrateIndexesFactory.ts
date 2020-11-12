@@ -1,19 +1,28 @@
-import { Options, Table } from './@types'
+import { CaseFunction, Options, Table } from './@types'
 import Knex from 'knex'
 import { constraintTypes, constraintTypesKeys } from './constraints'
 import { capitalize, uncastArray } from './utils'
 
-function hasNoMatchingConstraint(matchingIndexArr: string[][]) {
-  return ([columnName, constraintTypeKey, constraint]: string[]) => {
+function hasNoMatchingConstraint(matchingIndexArr: any[][]) {
+  return ([columnName, constraintTypeKey, constraint]: any) => {
     return !matchingIndexArr
-      .some(([anotherColumnName, anotherConstraintTypeKey, anotherConstraint]) => {
-        return constraintTypeKey === anotherConstraintTypeKey &&
-          constraintTypes[constraintTypeKey].isSame(constraint, anotherConstraint)
+      .some(([otherColumnName, otherConstraintTypeKey, otherConstraints]) => {
+        return otherConstraints
+          .some((otherConstraint: unknown) => {
+            return constraintTypeKey === otherConstraintTypeKey &&
+              constraintTypes[constraintTypeKey].isSame(constraint, otherConstraint)
+          })
       })
   }
 }
 
-export default function migrateIndexesFactory(safeCase: Function, options: Options) {
+function flattenConstraints(constraintsNested: any[]) {
+  return constraintsNested
+    .flatMap(([columnName, constraintTypeKey, constraints]: [string, string, any]) => constraints
+      .map((constraint: any) => [columnName, constraintTypeKey, constraint]))
+}
+
+export default function migrateIndexesFactory(safeCase: CaseFunction, options: Options) {
   return async function migrateIndexes(knex: Knex, table: Table) {
     // TODO: throw error on non postgres DB
     // TODO: migrate primary key
@@ -21,8 +30,8 @@ export default function migrateIndexesFactory(safeCase: Function, options: Optio
 
     const indexes = await constraintTypes.index.getExisting(knex, table.name)
     const references = await constraintTypes.references.getExisting(knex, table.name)
-    const existingConstraints = [...indexes, ...references]
-    const wantedConstraints = Object
+    const constraintsExisting = [...indexes, ...references]
+    const constraintsWanted = Object
       .entries(table.schema.properties)
       .filter(([_, field]) => constraintTypesKeys
         .some(constraintTypeKey => !!field[constraintTypeKey]))
@@ -31,23 +40,36 @@ export default function migrateIndexesFactory(safeCase: Function, options: Optio
         .filter(constraintTypeKey => field[constraintTypeKey])
         .map((constraintTypeKey) => {
           const constraintType = constraintTypes[constraintTypeKey]
-          const constraint = constraintType
-            .format(table.name, columnName, field[constraintTypeKey], field, safeCase)
+          const constraintSchema = field[constraintTypeKey]
+          const isArray = Array.isArray(constraintSchema)
 
-          return [columnName, constraintTypeKey, constraint]
+          if (isArray && !constraintSchema.length) {
+            throw new Error('Database constraint array can not be empty')
+          }
+
+          const constraintsSchemaArray = (isArray &&
+            constraintSchema.some((schema: unknown) => typeof schema !== 'string'))
+            ? constraintSchema
+            : [constraintSchema]
+
+          const constraints = constraintsSchemaArray
+            .map((constraintSchemaItem: unknown) => constraintType
+              .format(table.name, columnName, constraintSchemaItem, field, safeCase))
+
+          return [columnName, constraintTypeKey, constraints]
         }))
       .filter(index => !!index)
 
-    if (!existingConstraints.length && !wantedConstraints.length) return
+    if (!constraintsExisting.length && !constraintsWanted.length) return
 
-    const addConstraints: any[] = wantedConstraints
-      .filter(hasNoMatchingConstraint(existingConstraints))
-    const dropConstraints: any[] = existingConstraints
-      .filter(hasNoMatchingConstraint(wantedConstraints))
+    const constraintsAdd: any[] = flattenConstraints(constraintsWanted)
+      .filter(hasNoMatchingConstraint(constraintsExisting))
+    const constraintsDrop: any[] = flattenConstraints(constraintsExisting)
+      .filter(hasNoMatchingConstraint(constraintsWanted))
 
-    if (dropConstraints.length) {
+    if (constraintsDrop.length) {
       await knex.schema.alterTable(table.name, (tableBuilder: Knex.TableBuilder) => {
-        dropConstraints.forEach(([columnName, constraintTypeKey, constraint]) => {
+        constraintsDrop.forEach(([columnName, constraintTypeKey, constraint]) => {
           const dropKey = constraintTypes[constraintTypeKey].dropKey ||
             `drop${capitalize(constraintTypeKey)}`
 
@@ -56,9 +78,9 @@ export default function migrateIndexesFactory(safeCase: Function, options: Optio
       })
     }
 
-    if (addConstraints.length) {
+    if (constraintsAdd.length) {
       await knex.schema.alterTable(table.name, (tableBuilder: Knex.TableBuilder) => {
-        addConstraints.forEach(([columnName, constraintType, constraint]) => {
+        constraintsAdd.forEach(([columnName, constraintType, constraint]) => {
           const columnsArgument = uncastArray(constraint.columns)
 
           if (constraintType === 'references') {

@@ -69,6 +69,7 @@ export interface Logger {
 }
 
 export type HookType = 'before' | 'after' | 'error'
+export type HookTypeFinal = 'beforeFinal' | 'afterFinal' | 'errorFinal' | 'unknown'
 
 export type HookMethod = 'all'
   | 'allSet'
@@ -100,10 +101,12 @@ export type Options = {
   doMigrateSchema: boolean
   doUseSnakeCase: boolean
   feathersKnex?: any
+  globalHooks?: GlobalHooks,
   paginate: {
     default: number
     max: number
   },
+  serviceOptions?: object | Function,
 }
 
 export type Table = {
@@ -123,6 +126,16 @@ export type TableSchemaProperties = {
 
 export type ServiceHooks = {
   [key in HookType]?: HookMethods
+}
+
+export type GlobalHooks = {
+  before?: HookMethods,
+  beforeFinal?: HookMethods,
+  after?: HookMethods,
+  afterFinal?: HookMethods,
+  error?: HookMethods,
+  errorFinal?: HookMethods,
+  unknown?: HookMethods
 }
 
 export interface Validator {

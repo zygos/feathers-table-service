@@ -9,7 +9,7 @@ import { Blueprint, Options, BlueprintFactory, TableSchema } from './@types'
 import migrateIndexesFactory from './migrateIndexesFactory'
 import setupChannelsFactory from './setupChannelsFactory'
 import * as hooks from './hooks'
-import { castArray } from './utils'
+import { castArray, maybeCall } from './utils'
 
 export { hooks }
 export * from './presets'
@@ -17,8 +17,8 @@ export { default as buildJsonSchema } from './buildJsonSchema'
 
 export function tableServiceFactory({
   apiBase = '',
-  doAlterColumns = true,
   doAddColumns = true,
+  doAlterColumns = true,
   doDropColumns = true,
   doDropTables = false,
   doDropTablesForce = false,
@@ -26,7 +26,9 @@ export function tableServiceFactory({
   doMigrateSchema = true,
   doUseSnakeCase = false,
   feathersKnex = feathersKnexMain,
+  globalHooks = {},
   paginate = { default: 10, max: 50 },
+  serviceOptions = {},
 }: Options) {
   const options = {
     apiBase,
@@ -124,7 +126,9 @@ export function tableServiceFactory({
       const feathersService = (() => {
         const rawService = blueprint.service || feathersKnex({
           Model: knex,
+          // TODO: move paginate to serviceOptions
           paginate: { ...paginate },
+          ...maybeCall(serviceOptions),
           ...blueprint.knex,
         })
 
@@ -148,7 +152,7 @@ export function tableServiceFactory({
       const service = (app.registerService as any)(name, ...serviceChain)
 
       if (blueprint.hooks) {
-        service.hooks(inheritHooks(blueprint.hooks))
+        service.hooks(inheritHooks(blueprint.hooks, globalHooks))
       }
 
       if (blueprint.channels) {
