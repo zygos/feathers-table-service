@@ -9,7 +9,7 @@ import {
 import { castArray } from './utils'
 
 const hookTypes: HookType[] = ['before', 'after', 'error', 'finally']
-const hookMethods: HookMethod[] = ['all', 'create', 'patch', 'update', 'find', 'get']
+const hookMethods: HookMethod[] = ['all', 'create', 'patch', 'update', 'remove', 'find', 'get']
 const ALL_SET: HookMethod = 'allSet'
 const ALL_GET: HookMethod = 'allGet'
 const compoundHookMethodsKeys: HookMethod[] = [ALL_GET, ALL_SET]
