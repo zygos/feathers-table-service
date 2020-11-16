@@ -1,4 +1,4 @@
-import { Application } from '@feathersjs/feathers'
+import Feathers from '@feathersjs/feathers'
 import { Connection } from '@feathersjs/socket-commons'
 
 declare module '@feathersjs/feathers' {
@@ -7,8 +7,8 @@ declare module '@feathersjs/feathers' {
   }
 
   interface Application<ServiceTypes = {}> {
-    getService(name: string): any
-    registerService(name: string, service: any): any
+    getService:<L extends keyof ServiceTypes> (location: keyof ServiceTypes extends never ? string : L) => Feathers.Service<ServiceTypes[L]>;
+    registerService:<L extends keyof ServiceTypes>(name: L, service: Partial<Feathers.ServiceMethods<ServiceTypes[L]> & Feathers.SetupMethod> | Feathers.Application) => Feathers.Service<ServiceTypes[L]>;
 
     getTableSchema(name: string): TableSchema
     setTableSchema(name: string, schema: TableSchema): void
@@ -54,7 +54,7 @@ export interface Blueprint {
   afterAll: Function
 }
 
-export type BlueprintFactory = (app: Application) => Blueprint
+export type BlueprintFactory = (app: Feathers.Application) => Blueprint
 
 export type EventContext = {
   connection: Connection
