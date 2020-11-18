@@ -97,8 +97,10 @@ export type Options = {
   doDropColumns: boolean
   doDropTables: boolean
   doDropTablesForce: boolean
+  doLazyLoad: boolean
   doMigrateIndexes: boolean
   doMigrateSchema: boolean
+  doRunAfterAll: boolean
   doUseSnakeCase: boolean
   feathersKnex?: any
   globalHooks?: GlobalHooks,
