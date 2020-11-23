@@ -14,7 +14,7 @@ export default function formatTableSchemaFactory(safeCase: Function) {
       }
     }
 
-    if (compactBlueprint.table && !compactBlueprint.table.name) {
+    if (compactBlueprint.table && typeof compactBlueprint.table.name === 'undefined') {
       compactBlueprint.table.name = safeCase(name)
     }
 

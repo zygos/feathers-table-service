@@ -82,7 +82,7 @@ export default function createServiceFactory(options: Options, afterAll: [string
       blueprint.table.schema = formatSchema(blueprint.table.schema)
       app.setTableSchema(name, blueprint.table.schema)
 
-      if (doMigrateSchema) {
+      if (doMigrateSchema && typeof blueprint.table.name === 'string') {
         if (doDropTables) {
           try {
             await knex.schema.dropTableIfExists(blueprint.table.name)
