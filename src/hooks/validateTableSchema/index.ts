@@ -1,6 +1,5 @@
 import { HookContext } from '@feathersjs/feathers'
 import { TableSchema, Validator } from '../../@types'
-// import transformsFactory from './transformsFactory'
 import validationsFactory from './validationsFactory'
 import { Unprocessable } from '@feathersjs/errors'
 
