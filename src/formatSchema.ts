@@ -1,7 +1,6 @@
 import { TableSchema } from './@types'
 import { maybeCall } from './utils'
 
-
 const defaultField = {
   comment: null,
   foreign: null,

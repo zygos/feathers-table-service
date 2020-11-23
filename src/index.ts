@@ -1,7 +1,7 @@
 import { Application } from '@feathersjs/feathers'
 import feathersKnexMain from 'feathers-knex'
 // import inheritHooks from './inheritHooks'
-import { Blueprint, Options, BlueprintFactory, TableSchema } from './@types'
+import { Blueprint, Options, BlueprintFactory } from './@types'
 import * as hooks from './hooks'
 import extendApp from './extendApp'
 import createServiceFactory from './createServiceFactory'
@@ -17,7 +17,6 @@ export function tableServiceFactory({
   doDropColumns = true,
   doDropTables = false,
   doDropTablesForce = false,
-  doLazyLoad = false,
   doMigrateIndexes = false,
   doMigrateSchema = true,
   doRunAfterAll = true,
@@ -34,7 +33,6 @@ export function tableServiceFactory({
     doDropColumns,
     doDropTables,
     doDropTablesForce,
-    doLazyLoad,
     doMigrateIndexes,
     doMigrateSchema,
     doRunAfterAll,

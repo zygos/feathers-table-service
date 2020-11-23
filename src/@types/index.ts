@@ -1,4 +1,4 @@
-import Feathers from '@feathersjs/feathers'
+import Feathers, { ServiceMethods } from '@feathersjs/feathers'
 import { Connection } from '@feathersjs/socket-commons'
 
 declare module '@feathersjs/feathers' {
@@ -97,7 +97,6 @@ export type Options = {
   doDropColumns: boolean
   doDropTables: boolean
   doDropTablesForce: boolean
-  doLazyLoad: boolean
   doMigrateIndexes: boolean
   doMigrateSchema: boolean
   doRunAfterAll: boolean
@@ -116,13 +115,33 @@ export type Table = {
   schema: TableSchema
 }
 
-export type TableSchema = {
-  app?: any
+export interface TableSchema {
   properties: TableSchemaProperties
   required?: string[]
+  stash?: {
+    data?: DataStashSchema
+    query?: StashSchema
+  }
 }
 
-export type TableSchemaProperties = {
+export interface StashSchema {
+  [key: string]: TableSchemaProperties
+}
+
+export interface DataStashSchema extends StashSchema {
+  [key: string]: TableSchemaCascade
+}
+
+export interface TableSchemaCascade extends TableSchema {
+  cascade?: CascadeSchema
+}
+
+export interface CascadeSchema {
+  methods: keyof ServiceMethods<unknown>
+}
+
+// TODO: add definition
+export interface TableSchemaProperties {
   [key: string]: any
 }
 

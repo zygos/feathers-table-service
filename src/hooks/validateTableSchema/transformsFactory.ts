@@ -1,6 +1,5 @@
-import { HookContext } from "@feathersjs/feathers"
-import { castArray } from "../../utils"
-import { TableSchemaProperties } from "../../@types"
+import { HookContext } from '@feathersjs/feathers'
+import { TableSchemaProperties } from '../../@types'
 
 export default function transformsFactory(properties: TableSchemaProperties) {
   const transformsMap: { [key: string]: Function } = {}
@@ -10,16 +9,23 @@ export default function transformsFactory(properties: TableSchemaProperties) {
     }
   }
 
-  const applyTransforms = (row: any) => {
+  const applyTransforms = (row: any, ctx: HookContext) => {
     for (const key in transformsMap) {
-      if (typeof row[key] !== 'undefined' || properties[key].forceTransform) {
-        row[key] = transformsMap[key](row[key])
+      const value = transformsMap[key](row[key], ctx)
+
+      if (value === undefined) {
+        delete row[key]
+      } else {
+        row[key] = value
       }
     }
   }
 
   return function transforms(ctx: HookContext) {
-    castArray(ctx.data).forEach(applyTransforms)
-    return ctx
+    if (Array.isArray(ctx.data)) {
+      ctx.data.forEach(record => applyTransforms(record, ctx))
+    } else {
+      applyTransforms(ctx.data, ctx)
+    }
   }
 }

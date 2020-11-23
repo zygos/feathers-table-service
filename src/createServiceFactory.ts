@@ -1,7 +1,6 @@
 import { Application } from '@feathersjs/feathers'
 import { Blueprint, BlueprintFactory, Options } from './@types'
 import buildTableFactory from './buildTableFactory'
-import lazyServiceFactory from './lazyService'
 import formatSchema from './formatSchema'
 import formatTableSchemaFactory from './formatTableSchemaFactory'
 import inheritHooks from './inheritHooks'
@@ -9,7 +8,6 @@ import migrateIndexesFactory from './migrateIndexesFactory'
 import safeCaseFactory from './safeCaseFactory'
 import setupChannelsFactory from './setupChannelsFactory'
 import { castArray, maybeCall } from './utils'
-// import { header } from 'change-case'
 
 export default function createServiceFactory(options: Options, afterAll: [string, Function][]) {
   const safeCase = safeCaseFactory(options)
@@ -20,7 +18,6 @@ export default function createServiceFactory(options: Options, afterAll: [string
   const {
     doDropTables,
     doDropTablesForce,
-    doLazyLoad,
     doMigrateIndexes,
     doMigrateSchema,
     feathersKnex,
@@ -128,21 +125,5 @@ export default function createServiceFactory(options: Options, afterAll: [string
     return service
   }
 
-  if (!doLazyLoad) return createService
-
-  return async function createLazyService(
-    name: string,
-    blueprintProvided: Blueprint | BlueprintFactory,
-    app: Application,
-  ) {
-    const lazyService = lazyServiceFactory({
-      app,
-      apiBase: options.apiBase,
-      blueprintFactory: blueprintProvided,
-      name,
-      serviceFactory: createService,
-    })
-
-    ;(app.registerService as any)(name, lazyService)
-  }
+  return createService
 }
