@@ -103,6 +103,9 @@ export type Options = {
   doUseSnakeCase: boolean
   feathersKnex?: any
   globalHooks?: GlobalHooks,
+  lifecycle?: {
+    processBlueprintAfter?: Function
+  },
   paginate: {
     default: number
     max: number
@@ -116,6 +119,7 @@ export type Table = {
 }
 
 export interface TableSchema {
+  type?: string
   properties: TableSchemaProperties
   required?: string[]
   stash?: {

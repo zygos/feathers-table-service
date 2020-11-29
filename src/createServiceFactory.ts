@@ -22,6 +22,7 @@ export default function createServiceFactory(options: Options, afterAll: [string
     doMigrateSchema,
     feathersKnex,
     globalHooks = {},
+    lifecycle = {},
     paginate,
     serviceOptions,
   } = options
@@ -114,6 +115,10 @@ export default function createServiceFactory(options: Options, afterAll: [string
     // TODO: move out of createServiceFactory
     if (blueprint.afterAll) {
       afterAll.push([name, blueprint.afterAll])
+    }
+
+    if (typeof lifecycle.processBlueprintAfter === 'function') {
+      await lifecycle.processBlueprintAfter(blueprint)
     }
 
     app.emit(`tableService.${name}.ready`)
