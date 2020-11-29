@@ -118,7 +118,7 @@ export default function createServiceFactory(options: Options, afterAll: [string
     }
 
     if (typeof lifecycle.processBlueprintAfter === 'function') {
-      await lifecycle.processBlueprintAfter(blueprint)
+      await lifecycle.processBlueprintAfter(blueprint, app)
     }
 
     app.emit(`tableService.${name}.ready`)

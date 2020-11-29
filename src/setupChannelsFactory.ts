@@ -21,6 +21,7 @@ export default function setupChannelsFactory(app: Application) {
 
   function joinChannel(channelName: string, userId: number) {
     getUserConnections(userId).forEach((connection: Connection) => {
+      // deepcode ignore PureMethodReturnValueIgnored: <please specify a reason of ignoring this>
       app.channel(channelName).join(connection)
     })
   }
