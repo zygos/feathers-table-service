@@ -5,6 +5,8 @@ export default function formatTableSchemaFactory(safeCase: Function) {
     name: string,
     compactBlueprint: Blueprint | Blueprint,
   ): Blueprint {
+    compactBlueprint.name = name
+
     if (!compactBlueprint.service) {
       if (!compactBlueprint.knex) {
         compactBlueprint.knex = {}

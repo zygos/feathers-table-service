@@ -1,4 +1,4 @@
-import Feathers, { ServiceMethods } from '@feathersjs/feathers'
+import Feathers, { Application, ServiceMethods } from '@feathersjs/feathers'
 import { Connection } from '@feathersjs/socket-commons'
 
 declare module '@feathersjs/feathers' {
@@ -37,10 +37,11 @@ export interface SharedQueueRecord {
   every?: number
   limit?: number
   isImmediate?: boolean
-  handler: () => unknown
+  handler: (blueprint: Blueprint, app: Application) => unknown
 }
 
 export interface Blueprint {
+  name?: string
   channels?: { [s: string]: Function } | Function
   hooks?: ServiceHooks
   knex?: {
