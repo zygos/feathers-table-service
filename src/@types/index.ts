@@ -30,6 +30,16 @@ declare module 'knex' {
   }
 }
 
+export interface SharedQueueRecord {
+  name: string
+  cron?: string
+  delay?: number
+  every?: number
+  limit?: number
+  isImmediate?: boolean
+  handler: () => unknown
+}
+
 export interface Blueprint {
   channels?: { [s: string]: Function } | Function
   hooks?: ServiceHooks
@@ -51,7 +61,8 @@ export interface Blueprint {
   extend?: Object | Function,
   table?: Table
   setup?: Function
-  afterAll: Function
+  afterAll?: Function
+  queue?: SharedQueueRecord[]
 }
 
 export type BlueprintFactory = (app: Feathers.Application) => Blueprint
