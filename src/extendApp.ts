@@ -26,7 +26,7 @@ export default function extendApp(app: Application, { apiBase }: Options) {
     afterAllDone: new Map(),
     async afterAll(...serviceNames: string[]) {
       const isEveryDone = () => {
-        const doneKeys = app.tableService.afterAllDone.keys()
+        const doneKeys = Array.from(app.tableService.afterAllDone.keys())
 
         return serviceNames.every(serviceName => doneKeys.includes(serviceName))
       }
