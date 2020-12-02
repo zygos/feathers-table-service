@@ -28,7 +28,7 @@ export default function extendApp(app: Application, { apiBase }: Options) {
       const isEveryDone = () => {
         const doneKeys = app.tableService.afterAllDone.keys()
 
-        return serviceNames.every(serviceName => doneKeys.has(serviceName))
+        return serviceNames.every(serviceName => doneKeys.includes(serviceName))
       }
 
       const getDoneResults = () => serviceNames
