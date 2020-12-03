@@ -122,6 +122,7 @@ export type Options = {
     default: number
     max: number
   },
+  runAfterAllServices: string[] | null,
   serviceOptions?: object | Function,
 }
 
