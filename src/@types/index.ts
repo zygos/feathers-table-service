@@ -1,5 +1,13 @@
-import Feathers, { Application, ServiceMethods } from '@feathersjs/feathers'
+import Feathers, { Application, HookContext, ServiceMethods } from '@feathersjs/feathers'
 import { Connection } from '@feathersjs/socket-commons'
+
+export type HookSync = (ctx: HookContext) => void
+export type HookPredicateAsync = (ctx: HookContext) => PredicateBoolAsync
+export type HookPredicateSync = (ctx: HookContext) => boolean
+export type HookPredicate = HookPredicateSync | HookPredicateAsync
+export type PredicateBoolAsync = Promise<boolean>
+export type PredicateBool = boolean | PredicateBoolAsync
+export type Predicate = PredicateBool | HookPredicate
 
 declare module '@feathersjs/feathers' {
   interface HookContext {
@@ -12,6 +20,8 @@ declare module '@feathersjs/feathers' {
 
     getTableSchema(name: string): TableSchema
     setTableSchema(name: string, schema: TableSchema): void
+
+    processChannels(composition:any, channelsNames: string[], record:any):void
 
     tableService: {
       afterAllDone: {

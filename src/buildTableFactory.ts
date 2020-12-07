@@ -12,7 +12,7 @@ export default function buildTableFactory(safeCase: CaseFunction, options: Optio
         .then(() => Promise.resolve())
     }
 
-    function toColumns(acc: { [key: string]: any }, [fieldName, doesExist]: [string, boolean]) {
+    function toColumns(acc: { [key: string]: any }, [fieldName, doesExist]: (string | boolean)[]) {
       if (typeof fieldName === 'string') {
         acc[fieldName] = {
           ...table.schema.properties[fieldName],
@@ -23,7 +23,7 @@ export default function buildTableFactory(safeCase: CaseFunction, options: Optio
       return acc
     }
 
-    const columnsStates: [string, boolean][] = await Promise.all(Object
+    const columnsStates: (string | boolean)[][] = await Promise.all(Object
       .keys(table.schema.properties)
       .map(fieldName => knex.schema
         .hasColumn(table.name, safeCase(fieldName))

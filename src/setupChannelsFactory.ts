@@ -2,6 +2,10 @@ import { Application, HookContext } from '@feathersjs/feathers'
 import { Connection } from '@feathersjs/socket-commons'
 import { EventContext } from './@types'
 
+declare module '@feathersjs/feathers' {
+
+}
+
 export default function setupChannelsFactory(app: Application) {
   function getUserConnections(userId: number) {
     if (!app.channels || app.channels.length === 0) return []
@@ -21,7 +25,6 @@ export default function setupChannelsFactory(app: Application) {
 
   function joinChannel(channelName: string, userId: number) {
     getUserConnections(userId).forEach((connection: Connection) => {
-      // deepcode ignore PureMethodReturnValueIgnored: <please specify a reason of ignoring this>
       app.channel(channelName).join(connection)
     })
   }
