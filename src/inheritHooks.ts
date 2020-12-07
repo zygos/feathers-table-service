@@ -12,7 +12,6 @@ const hookTypes: HookType[] = ['before', 'after', 'error', 'finally']
 const hookMethods: HookMethod[] = ['all', 'create', 'patch', 'update', 'remove', 'find', 'get']
 const ALL_SET: HookMethod = 'allSet'
 const ALL_GET: HookMethod = 'allGet'
-const compoundHookMethodsKeys: HookMethod[] = [ALL_GET, ALL_SET]
 const none: HookMethods = {}
 const empty: Function[] = []
 const methodCompounds = new Map([
@@ -35,15 +34,11 @@ export default function inheritHooks(extendedHooks: ServiceHooks, globalHooks: G
       const hooksOfType = extendedHooks[hookType] || none
       const hooksOfTypeGlobal = globalHooks[hookType] || none
       const hooksOfTypeGlobalFinal = (globalHooks[getHookTypeFinal(hookType)] || none)
-      // const hookMethodsCustom = Object
-      //   .keys(hooksOfType)
-      //   .filter((key: any) => !hookMethods.includes(key))
 
       return [
         hookType,
         Object.fromEntries([
           ...hookMethods
-            .filter(hookMethod => !compoundHookMethodsKeys.includes(hookMethod))
             .map((hookMethod) => {
               const compoundKey = methodCompounds.get(hookMethod)
               const hooksCompounded = getCompounded(hooksOfType, compoundKey)
@@ -62,7 +57,6 @@ export default function inheritHooks(extendedHooks: ServiceHooks, globalHooks: G
                 ].flatMap(array => wrapArray(array)),
               ]
             }),
-          // ...hookMethodsCustom.map(key => [key, hooksOfType[key]]),
         ]),
       ]
     }))
