@@ -49,8 +49,8 @@ export interface SharedQueueRecord {
 }
 
 export interface ExtendedChannel extends Channel {
-  ctx?: any;
-  omitters?: Map<any, any>;
+  ctx?: HookContext;
+  omitters?: Map<Record<string, Predicate>, <T>(obj: T) => Pick<T, Exclude<keyof T, string>>>;
 }
 
 export interface Blueprint {

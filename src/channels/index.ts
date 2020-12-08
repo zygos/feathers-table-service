@@ -1,9 +1,9 @@
 import getFieldsToOmit from './getFieldsToOmit'
 
 import joinChannels from './joinChannels'
-import processChannels from './processChannels'
+import sendDataToChannels from './sendDataToChannels'
 
 export default {
   joinChannels,
-  processChannels,
+  sendDataToChannels,
 }

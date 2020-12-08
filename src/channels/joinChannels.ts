@@ -1,24 +1,23 @@
-import { Application } from '@feathersjs/feathers'
+import { Application, HookContext } from '@feathersjs/feathers'
 import { Connection } from '@feathersjs/socket-commons'
-import { omit } from 'rambda'
-import { ExtendedChannel, Predicate } from '../@types'
-import getFieldsToOmit from './getFieldsToOmit'
+import { ExtendedChannel } from '../@types'
 
-export default async function joinChannels(app: Application, connection: Connection, cofigurations:any, access: Record<string, Predicate>) {
-  cofigurations.forEach(async(configuration:any) => {
+export default async function joinChannels(app: Application, connection: Connection, cofigurations:any) {
+  const channels:ExtendedChannel[] = cofigurations.map((configuration: any) => {
     const channel: ExtendedChannel = app.channel(configuration.name)
-    const ctx = {
-      params: {
-        authenticated: true,
-        provider: 'socketio',
-        ...configuration.params,
-      },
+    if (!channel.ctx) {
+      channel.ctx = {
+        params: {
+          authenticated: true,
+          provider: 'socketio',
+          ...configuration.params,
+        },
+      } as HookContext
     }
-    channel.ctx = ctx
-    const fieldsToOmit = await getFieldsToOmit(access, ctx)
-    const omitter = omit(fieldsToOmit)
-    channel.omitters = new Map()
-    channel.omitters.set(access, omitter)
+    return channel
+  })
+
+  channels.forEach((channel) => {
     channel.join(connection)
   })
 }
