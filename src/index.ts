@@ -28,6 +28,7 @@ export function tableServiceFactory({
   lifecycle = {},
   globalHooks = {},
   paginate = { default: 10, max: 50 },
+  runAfterAllServices = null,
   serviceOptions = {},
 }: Options) {
   const options = {
@@ -45,6 +46,7 @@ export function tableServiceFactory({
     feathersKnex,
     globalHooks,
     paginate,
+    runAfterAllServices,
     serviceOptions,
   }
 
@@ -72,6 +74,8 @@ export function tableServiceFactory({
   const runAfterAll = async function runAfterAll(app: Application) {
     const result = doRunAfterAll && await Promise
       .all(afterAll
+        .filter(([serviceName]) =>
+          !runAfterAllServices || runAfterAllServices.includes(serviceName))
         .map(async([serviceName, seedFunction]) => {
           const results = await seedFunction(appReference)
 
