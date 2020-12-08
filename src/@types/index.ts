@@ -1,5 +1,5 @@
 import Feathers, { Application, HookContext, ServiceMethods } from '@feathersjs/feathers'
-import { Connection } from '@feathersjs/socket-commons'
+import { Connection, Channel } from '@feathersjs/socket-commons'
 
 export type HookSync = (ctx: HookContext) => void
 export type HookPredicateAsync = (ctx: HookContext) => PredicateBoolAsync
@@ -20,8 +20,6 @@ declare module '@feathersjs/feathers' {
 
     getTableSchema(name: string): TableSchema
     setTableSchema(name: string, schema: TableSchema): void
-
-    processChannels(composition:any, channelsNames: string[], record:any):void
 
     tableService: {
       afterAllDone: {
@@ -48,6 +46,11 @@ export interface SharedQueueRecord {
   limit?: number
   isImmediate?: boolean
   handler: (blueprint: Blueprint, app: Application) => unknown
+}
+
+export interface ExtendedChannel extends Channel {
+  ctx?: any;
+  omitters?: Map<any, any>;
 }
 
 export interface Blueprint {

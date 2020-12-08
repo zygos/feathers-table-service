@@ -3,10 +3,13 @@ import feathersKnexMain from 'feathers-knex'
 // import inheritHooks from './inheritHooks'
 import { Blueprint, Options, BlueprintFactory } from './@types'
 import * as hooks from './hooks'
+import channels from './channels'
+
 import extendApp from './extendApp'
 import createServiceFactory from './createServiceFactory'
 
 export { hooks }
+export { channels }
 export * from './presets'
 export { default as buildJsonSchema } from './buildJsonSchema'
 
