@@ -1,5 +1,5 @@
 import { HookContext } from '@feathersjs/feathers'
-import { ExtendedChannel, Predicate } from '../@types'
+import { Predicate } from '../@types'
 import chainPredicate from '../hooks/chainPredicate'
 
 export default async function getFieldsToOmit(access: Record<string, Predicate>, ctx: HookContext) {
