@@ -1,4 +1,4 @@
-import Feathers, { Application, HookContext, ServiceMethods } from '@feathersjs/feathers'
+import Feathers, { Application, HookContext, Service, ServiceMethods } from '@feathersjs/feathers'
 import { Connection, Channel } from '@feathersjs/socket-commons'
 
 export type HookPredicateAsync = (ctx: HookContext) => PredicateBoolAsync
@@ -96,18 +96,20 @@ export interface Logger {
 export type HookType = 'before' | 'after' | 'error' | 'finally'
 export type HookTypeFinal = 'beforeFinal' | 'afterFinal' | 'errorFinal' | 'unknown'
 
-export type HookMethod = 'all'
+export type HookMethod = 'create'
+| 'find'
+| 'get'
+| 'update'
+| 'patch'
+| 'remove'
+
+export type HookMethodAll = 'all'
   | 'allSet'
   | 'allGet'
-  | 'create'
-  | 'find'
-  | 'get'
-  | 'update'
-  | 'patch'
-  | 'remove'
+  | HookMethod
 
-export type HookMethods = {
-  [key in HookMethod]?: Function[]
+export type HookMethodsAll = {
+  [key in HookMethodAll]?: Function[]
 }
 
 export type Indexes = Array<{
@@ -166,8 +168,12 @@ export interface TableSchemaCascade extends TableSchema {
   cascade?: CascadeSchema
 }
 
+// TODO: use serviceName in Application<ServiceTypes>
 export interface CascadeSchema {
-  methods: keyof ServiceMethods<unknown>
+  methods: HookMethod
+  serviceName: string
+  stashKey: string
+  type: number
 }
 
 // TODO: add definition
@@ -176,18 +182,18 @@ export interface TableSchemaProperties {
 }
 
 export type ServiceHooks = {
-  [key in HookType]?: HookMethods
+  [key in HookType]?: HookMethodsAll
 }
 
 export type GlobalHooks = {
-  before?: HookMethods,
-  beforeFinal?: HookMethods,
-  after?: HookMethods,
-  afterFinal?: HookMethods,
-  error?: HookMethods,
-  errorFinal?: HookMethods,
-  unknown?: HookMethods
-  finally?: HookMethods
+  before?: HookMethodsAll,
+  beforeFinal?: HookMethodsAll,
+  after?: HookMethodsAll,
+  afterFinal?: HookMethodsAll,
+  error?: HookMethodsAll,
+  errorFinal?: HookMethodsAll,
+  unknown?: HookMethodsAll
+  finally?: HookMethodsAll
 }
 
 export interface Validator {

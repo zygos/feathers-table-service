@@ -1,7 +1,7 @@
 import {
   GlobalHooks,
-  HookMethod,
-  HookMethods,
+  HookMethodAll,
+  HookMethodsAll,
   HookType,
   HookTypeFinal,
   ServiceHooks,
@@ -9,10 +9,10 @@ import {
 import { castArray } from './utils'
 
 const hookTypes: HookType[] = ['before', 'after', 'error', 'finally']
-const hookMethods: HookMethod[] = ['all', 'create', 'patch', 'update', 'remove', 'find', 'get']
-const ALL_SET: HookMethod = 'allSet'
-const ALL_GET: HookMethod = 'allGet'
-const none: HookMethods = {}
+const hookMethods: HookMethodAll[] = ['all', 'create', 'patch', 'update', 'remove', 'find', 'get']
+const ALL_SET: HookMethodAll = 'allSet'
+const ALL_GET: HookMethodAll = 'allGet'
+const none: HookMethodsAll = {}
 const empty: Function[] = []
 const methodCompounds = new Map([
   ['create', ALL_SET],
@@ -70,7 +70,7 @@ function getHookTypeFinal(hookType: HookType): HookTypeFinal {
   return 'unknown'
 }
 
-function getCompounded(hookMethods: HookMethods, compoundKey?: HookMethod) {
+function getCompounded(hookMethods: HookMethodsAll, compoundKey?: HookMethodAll) {
   return compoundKey
     ? hookMethods[compoundKey] || empty
     : empty
