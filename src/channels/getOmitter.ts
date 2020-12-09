@@ -3,7 +3,6 @@ import { ExtendedChannel } from '../@types'
 import getFieldsToOmit from './getFieldsToOmit'
 
 export default async function getOmitter(channel:ExtendedChannel, access:any) {
-
   if (!channel.omitters) channel.omitters = new Map()
 
   const currentOmitter = channel.omitters.get(access)
@@ -14,6 +13,8 @@ export default async function getOmitter(channel:ExtendedChannel, access:any) {
 
   const fieldsToOmit = await getFieldsToOmit(access, channel.ctx)
   const omitter = omit(fieldsToOmit)
+
   channel.omitters.set(access, omitter)
+
   return omitter
 }

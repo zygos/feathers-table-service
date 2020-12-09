@@ -2,15 +2,21 @@ import { ExtendedChannel, Predicate } from '../@types'
 import { Application } from '@feathersjs/feathers'
 import getOmitter from './getOmitter'
 
-export default async function sendDataToChannels(app: Application, access: Record<string, Predicate>, channelsNames: string[], record: Record<string, any>) {
-  const channels = channelsNames
-    .map(channelName => app.channel(channelName))
-  return Promise.all(channels
-    .map(async(channel: ExtendedChannel) => {
-      if (!channel.ctx || !record) return channel
+export default async function sendDataToChannels(
+  app: Application,
+  access: Record<string, Predicate>,
+  channelsNames: string[],
+  record: Record<string, any>,
+) {
+  if (!record) return []
 
-      const currentOmitter = await getOmitter(channel, access)
+  return Promise.all(channelsNames
+    .map(channelName => app.channel(channelName) as ExtendedChannel)
+    .map(async(channel) => {
+      if (!channel.ctx) return channel
 
-      return channel.send(currentOmitter(record))
+      const omitter = await getOmitter(channel, access)
+
+      return channel.send(omitter(record))
     }))
 }

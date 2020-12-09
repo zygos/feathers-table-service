@@ -1,7 +1,6 @@
 import Feathers, { Application, HookContext, ServiceMethods } from '@feathersjs/feathers'
 import { Connection, Channel } from '@feathersjs/socket-commons'
 
-export type HookSync = (ctx: HookContext) => void
 export type HookPredicateAsync = (ctx: HookContext) => PredicateBoolAsync
 export type HookPredicateSync = (ctx: HookContext) => boolean
 export type HookPredicate = HookPredicateSync | HookPredicateAsync
@@ -48,9 +47,10 @@ export interface SharedQueueRecord {
   handler: (blueprint: Blueprint, app: Application) => unknown
 }
 
+// TODO: rename, split into stricter types, one with ctx, another extending it with omitters
 export interface ExtendedChannel extends Channel {
-  ctx?: HookContext;
-  omitters?: Map<Record<string, Predicate>, <T>(obj: T) => Pick<T, Exclude<keyof T, string>>>;
+  ctx?: HookContext
+  omitters?: Map<Record<string, Predicate>, <T>(obj: T) => Pick<T, Exclude<keyof T, string>>>
 }
 
 export interface Blueprint {
