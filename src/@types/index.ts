@@ -170,7 +170,7 @@ export interface TableSchemaCascade extends TableSchema {
 
 // TODO: use serviceName in Application<ServiceTypes>
 export interface CascadeSchema {
-  methods: HookMethod
+  methods: HookMethod[]
   serviceName: string
   stashKey: string
   type: number
