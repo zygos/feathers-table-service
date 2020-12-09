@@ -16,7 +16,6 @@ export default async function joinChannels(app: Application, connection: Connect
     }
     return channel
   })
-
   channels.forEach((channel) => {
     channel.join(connection)
   })
