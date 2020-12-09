@@ -172,6 +172,7 @@ export interface TableSchemaCascade extends TableSchema {
 export interface CascadeSchema {
   methods: HookMethod[]
   serviceName: string
+  joinVia: string
   stashKey: string
   type: number
 }
