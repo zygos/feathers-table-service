@@ -2,7 +2,6 @@ import joinChannels from '../../../src/channels/joinChannels'
 import appMock from '../appMock'
 import connection from './connectionMock'
 import channelConfigurations from './channelConfigurations'
-import { Channel } from '@feathersjs/socket-commons'
 import { ChannelWithContext } from '../../../src/@types'
 
 describe('joinChannels', () => {
