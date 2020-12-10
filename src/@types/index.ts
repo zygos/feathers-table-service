@@ -37,6 +37,11 @@ declare module 'knex' {
   }
 }
 
+export interface Configuration {
+  name: string
+  params: any
+ }
+
 export interface SharedQueueRecord {
   name: string
   cron?: string
@@ -48,9 +53,8 @@ export interface SharedQueueRecord {
 }
 
 // TODO: rename, split into stricter types, one with ctx, another extending it with omitters
-export interface ExtendedChannel extends Channel {
+export interface ChannelWithContext extends Channel {
   ctx?: HookContext
-  omitters?: Map<Record<string, Predicate>, <T>(obj: T) => Pick<T, Exclude<keyof T, string>>>
 }
 
 export interface Blueprint {

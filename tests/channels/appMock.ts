@@ -15,29 +15,6 @@ export const channels: any = {
   },
 }
 
-// export const channelsAfter = {
-//   'user.1': {
-//     connections: [
-//       {
-//         provider: 'socketio',
-//         user: {
-//           id: 1,
-//         },
-//       },
-//     ],
-//   },
-//   ADMIN: {
-//     connections: [
-//       {
-//         provider: 'socketio',
-//         user: {
-//           id: 1,
-//         },
-//       },
-//     ],
-//   },
-// }
-
 export default {
   channel: (name: string) => {
     return channels[name]

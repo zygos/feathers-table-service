@@ -1,10 +1,10 @@
 import { Application, HookContext } from '@feathersjs/feathers'
 import { Connection } from '@feathersjs/socket-commons'
-import { ExtendedChannel } from '../@types'
+import { ChannelWithContext, Configuration } from '../@types'
 
-export default async function joinChannels(app: Application, connection: Connection, cofigurations:any) {
-  const channels:ExtendedChannel[] = cofigurations.map((configuration: any) => {
-    const channel: ExtendedChannel = app.channel(configuration.name)
+export default async function joinChannels(app: Application, connection: Connection, cofigurations: Configuration[]) {
+  const channels:ChannelWithContext[] = cofigurations.map((configuration) => {
+    const channel: ChannelWithContext = app.channel(configuration.name)
     if (!channel.ctx) {
       channel.ctx = {
         params: {
