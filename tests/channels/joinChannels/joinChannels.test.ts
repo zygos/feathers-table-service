@@ -2,45 +2,61 @@ import joinChannels from '../../../src/channels/joinChannels'
 import appMock from '../appMock'
 import connection from './connectionMock'
 import channelConfigurations from './channelConfigurations'
-import { ChannelWithContext } from '../../../src/@types'
+import { ChannelWithContext, Configuration } from '../../../src/@types'
+import { Channel } from '@feathersjs/socket-commons'
+
+type Condition = (channelName: string) => (configuration: Configuration) => Boolean
 
 describe('joinChannels', () => {
   it('adds context only to channels in configuration', () => {
     joinChannels(appMock, connection, channelConfigurations)
-    appMock.channels.forEach(channelName => {
-      const channel = appMock.channel(channelName)
 
-      const configuration = channelConfigurations
-        .find(configuration => configuration.name === channelName)
+    const channelsEntries = appMock.channels
+      .map(channelName => [channelName, appMock.channel(channelName)] as [string, Channel])
 
-      if (configuration) {
-        expect(channel).toHaveProperty('ctx')
-      } else {
-        expect(channel).not.toHaveProperty('ctx')
-      }
+    const filterChannels = (condition: Condition) => channelsEntries
+      .filter(([channelName]) => channelConfigurations
+        .some(condition(channelName)))
+      .map(([_, channel]) => channel)
+
+    const hasConfiguration = (channelName: string) =>
+      (configuration: Configuration) => configuration.name === channelName
+
+    const channelsWithConfig = filterChannels(hasConfiguration)
+    const channelsWithoutConfig = channelsEntries
+      .filter(([_, channel]) => !channelsWithConfig.includes(channel))
+
+    channelsWithConfig.forEach((channel) => {
+      expect(channel).toHaveProperty('ctx')
+    })
+
+    channelsWithoutConfig.forEach((channel) => {
+      expect(channel).not.toHaveProperty('ctx')
     })
   })
 
   it('adds context from configuration', () => {
     joinChannels(appMock, connection, channelConfigurations)
-    appMock.channels.forEach(channelName => {
-      const channel: ChannelWithContext = appMock.channel(channelName)
 
-      const configuration = channelConfigurations
-        .find(config => config.name === channelName)
-
-      if (!configuration) return
-
-      if (!channel.ctx) {
-        throw Error('Channel context undefined')
-      }
-
-      const paramsAfterJoin = {
-        ...configuration.params,
+    const channelConfigurationsWithParamsSnapshoot = channelConfigurations.map(({name, params}) => {
+      const paramsSnapshoot = {
+        ...params,
         authenticated: true,
         provider: 'socketio',
       }
-      expect(channel.ctx.params).toMatchObject(paramsAfterJoin)
+      return {name, paramsSnapshoot}
+    })
+
+    const channelsWithConfigurationEntries: [ChannelWithContext, unknown] = channelConfigurationsWithParamsSnapshoot
+      .map(({name, paramsSnapshoot}) => [appMock.channel(name), paramsSnapshoot ])
+
+    const isChannelWithoutContextFound = channelsWithConfigurationEntries
+      .some(([channel, _]) => !channel.ctx);
+
+    if(isChannelWithoutContextFound) throw Error('Channel context undefined')
+
+    channelsWithConfigurationEntries.forEach(([channel, paramsSnapshoot]) => {
+      expect(channel.ctx.params).toMatchObject(paramsSnapshoot)
     })
   })
 
