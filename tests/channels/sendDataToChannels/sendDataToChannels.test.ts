@@ -44,4 +44,6 @@ describe('sendDataToChannels', () => {
 
     expect(notTriggeredChannelSpyOn).toBeCalledTimes(0)
   })
+
+  // TODO add more cases
 })

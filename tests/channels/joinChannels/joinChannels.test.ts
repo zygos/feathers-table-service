@@ -43,4 +43,6 @@ describe('joinChannels', () => {
       expect(channel.ctx.params).toMatchObject(paramsAfterJoin)
     })
   })
+
+  // TODO add more cases
 })
