@@ -47,8 +47,9 @@ describe('joinChannels', () => {
       return {name, paramsSnapshoot}
     })
 
-    const channelsWithConfigurationEntries: [ChannelWithContext, unknown] = channelConfigurationsWithParamsSnapshoot
-      .map(({name, paramsSnapshoot}) => [appMock.channel(name), paramsSnapshoot ])
+    const channelsWithConfigurationEntries: [ChannelWithContext, unknown][] =
+      channelConfigurationsWithParamsSnapshoot
+        .map(({name, paramsSnapshoot}) => [appMock.channel(name), paramsSnapshoot])
 
     const isChannelWithoutContextFound = channelsWithConfigurationEntries
       .some(([channel, _]) => !channel.ctx);
@@ -56,7 +57,12 @@ describe('joinChannels', () => {
     if(isChannelWithoutContextFound) throw Error('Channel context undefined')
 
     channelsWithConfigurationEntries.forEach(([channel, paramsSnapshoot]) => {
-      expect(channel.ctx.params).toMatchObject(paramsSnapshoot)
+      expect(channel.ctx).not.toBe(undefined)
+
+      if (typeof channel.ctx === 'object') {
+        // TODO: use specific type
+        expect(channel.ctx.params).toMatchObject(paramsSnapshoot as any)
+      }
     })
   })
 
