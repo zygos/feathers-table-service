@@ -1,3 +1,5 @@
+import { maybeCall } from './utils'
+
 const patterns: { [key: string]: any } = {
   name: /^[\w'\-,.]*[^0-9_!¡?÷?¿/\\+=@#$%ˆ&*(){}|~<>;:[\]]{2,}$/,
   password: /^[\w-!@#$%/^&*=+~,.;()]*$/,
@@ -17,16 +19,16 @@ export const PRICE_MAX = 100000000
 export const SMALLINT_MAX = 32767
 export const STRING_MAX = 65536
 
-export function definePreset(knexType: string, template: object = {}) {
-  const typeTemplate: { [key: string]: any } = {
+type PresetTemplate = Record<string, unknown> | (() => Record<string, unknown>)
+
+const none = {}
+
+export function definePreset(knexType: string, template: PresetTemplate = {}) {
+  return (overwrites: Record<string, unknown> = {}) => ({
     knexType,
     nullable: true,
-    ...template,
-  }
-
-  return (overwrites: { [key: string]: any } = {}) => ({
-    ...typeTemplate,
-    ...(overwrites || {}),
+    ...maybeCall(template || none),
+    ...(overwrites || none),
   })
 }
 
