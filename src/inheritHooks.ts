@@ -28,7 +28,10 @@ const wrapArray = (array: Function | Function[] | undefined): Function[] => {
   return castArray(array)
 }
 
-export default function inheritHooks(extendedHooks: ServiceHooks, globalHooks: GlobalHooks) {
+export default function inheritHooks(
+  extendedHooks: ServiceHooks,
+  globalHooks: GlobalHooks,
+) {
   return Object.fromEntries(hookTypes
     .map((hookType) => {
       const hooksOfType = extendedHooks[hookType] || none

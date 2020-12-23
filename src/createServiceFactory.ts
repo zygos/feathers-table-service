@@ -62,12 +62,10 @@ export default function createServiceFactory(options: Options, afterAll: [string
     if (!feathersService) throw new Error(`Could not initialize ${name}`)
 
     const serviceChain = [
-      // ...castArray((blueprint.middleware || {}).before || []),
+      ...castArray((blueprint.middleware || {}).before || []),
       ...castArray(feathersService),
-      // ...castArray((blueprint.middleware || {}).after || []),
+      ...castArray((blueprint.middleware || {}).after || []),
     ]
-
-    // console.log('registerService', name)
 
     const service = (app.registerService as any)(name, ...serviceChain)
 
