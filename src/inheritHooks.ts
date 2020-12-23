@@ -37,27 +37,25 @@ export default function inheritHooks(extendedHooks: ServiceHooks, globalHooks: G
 
       return [
         hookType,
-        Object.fromEntries([
-          ...hookMethods
-            .map((hookMethod) => {
-              const compoundKey = methodCompounds.get(hookMethod)
-              const hooksCompounded = getCompounded(hooksOfType, compoundKey)
-              const hooksGlobalCompounded = getCompounded(hooksOfTypeGlobal, compoundKey)
-              const hooksGlobalFinalCompounded = getCompounded(hooksOfTypeGlobalFinal, compoundKey)
+        Object.fromEntries(hookMethods
+          .map((hookMethod) => {
+            const compoundKey = methodCompounds.get(hookMethod)
+            const hooksCompounded = getCompounded(hooksOfType, compoundKey)
+            const hooksGlobalCompounded = getCompounded(hooksOfTypeGlobal, compoundKey)
+            const hooksGlobalFinalCompounded = getCompounded(hooksOfTypeGlobalFinal, compoundKey)
 
-              return [
-                hookMethod,
-                [
-                  hooksGlobalCompounded, // global allSet
-                  hooksOfTypeGlobal[hookMethod], // global create
-                  hooksCompounded, // allSet
-                  hooksOfType[hookMethod], // create
-                  hooksGlobalFinalCompounded, // global allSetFinal
-                  hooksOfTypeGlobalFinal[hookMethod], // global createFinal
-                ].flatMap(array => wrapArray(array)),
-              ]
-            }),
-        ]),
+            return [
+              hookMethod,
+              [
+                hooksGlobalCompounded, // global allSet
+                hooksOfTypeGlobal[hookMethod], // global create
+                hooksCompounded, // allSet
+                hooksOfType[hookMethod], // create
+                hooksGlobalFinalCompounded, // global allSetFinal
+                hooksOfTypeGlobalFinal[hookMethod], // global createFinal
+              ].filter(Boolean).flatMap(array => wrapArray(array)),
+            ]
+          })),
       ]
     }))
 }
