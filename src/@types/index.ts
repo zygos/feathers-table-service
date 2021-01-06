@@ -154,6 +154,7 @@ export interface TableSchema {
   type?: string
   properties: TableSchemaProperties
   required?: string[]
+  access?: Record<string, Predicate>
   stash?: {
     data?: DataStashSchema
     query?: StashSchema
