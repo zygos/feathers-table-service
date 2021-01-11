@@ -79,6 +79,8 @@ export function tableServiceFactory({
         .map(async([serviceName, seedFunction]) => {
           const results = await seedFunction(appReference)
 
+          app.tableService.afterAllDone.set(serviceName, results)
+
           app.emit('tableService.afterAll', {
             serviceName,
             results,
@@ -87,7 +89,6 @@ export function tableServiceFactory({
 
     if (app && app.emit) {
       app.emit('tableService.ready')
-      app.removeAllListeners('tableService.afterAll')
     }
 
     return result || []

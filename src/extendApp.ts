@@ -1,6 +1,11 @@
 import { Application } from '@feathersjs/feathers'
 import { Options, TableSchema } from './@types'
 
+interface ServiceSeedResult {
+  serviceName: string
+  results: Array<Record<string, unknown>>
+}
+
 export default function extendApp(app: Application, { apiBase }: Options) {
   if (typeof app.getService === 'function') return
 
@@ -34,16 +39,17 @@ export default function extendApp(app: Application, { apiBase }: Options) {
       const getDoneResults = () => serviceNames
         .map(serviceName => app.tableService.afterAllDone.get(serviceName))
 
-      if (isEveryDone()) return getDoneResults()
-
       return new Promise((resolve) => {
-        app.on('tableService.afterAll', ({ serviceName: resolvedServiceName, results }) => {
-          if (!app.tableService.afterAllDone.has(resolvedServiceName)) {
-            app.tableService.afterAllDone.set(resolvedServiceName, results)
-          }
+        if (isEveryDone()) return resolve(getDoneResults())
 
-          if (isEveryDone()) resolve(getDoneResults())
-        })
+        const eventListener = () => {
+          if (!isEveryDone()) return
+
+          app.removeListener('tableService.afterAll', eventListener)
+          resolve(getDoneResults())
+        }
+
+        app.on('tableService.afterAll', eventListener)
       })
     },
   }
