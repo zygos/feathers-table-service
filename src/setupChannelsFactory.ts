@@ -42,6 +42,7 @@ export default function setupChannelsFactory(app: Application) {
 
     const globalEvents = ['connection', 'login', 'logout']
 
+    // TODO: remove for loop
     for (const event in channels) {
       if (globalEvents.includes(event)) {
         app.on(event, (payload: any, context: EventContext) =>

@@ -10,8 +10,12 @@ export default async function sendDataToChannels(
 ) {
   if (!record) return []
 
-  return Promise.all(channelsNames
+  const channels = channelsNames
     .map(channelName => app.channel(channelName) as Required<ChannelWithContext>)
+
+  if (!access) return channels
+
+  return await Promise.all(channels
     .map(async(channel) => {
       if (!channel.ctx) return channel
 
