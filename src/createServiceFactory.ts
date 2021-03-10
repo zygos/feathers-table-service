@@ -48,6 +48,27 @@ export default function createServiceFactory(options: Options, afterAll: [string
         ...blueprint.knex,
       })
 
+      // assign table schema name to custom services
+      if (blueprint.service && blueprint.table && !blueprint.table.name) {
+        if (Array.isArray(blueprint.service)) {
+          const serviceInstance = blueprint.service
+            .filter(Boolean)
+            .find(service => service.constructor?.name === 'Service')
+
+          if (serviceInstance) {
+            serviceInstance.options = {
+              name,
+              ...serviceInstance.options || {},
+            }
+          }
+        } else {
+          rawService.options = {
+            name,
+            ...rawService.options || {},
+          }
+        }
+      }
+
       if (!blueprint.extend || typeof rawService.extend !== 'function') return rawService
 
       const serviceExtension = typeof blueprint.extend === 'function'

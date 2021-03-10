@@ -57,7 +57,7 @@ export function tableServiceFactory({
 
   const tableService = function tableService(
     name: string,
-    compactBlueprint: Blueprint | BlueprintFactory,
+    blueprintCompact: Blueprint | BlueprintFactory,
   ) {
     if (typeof name !== 'string') {
       throw new Error('First tableService argument is name: String')
@@ -67,7 +67,7 @@ export function tableServiceFactory({
 
       extendApp(app, options)
 
-      return createService(name, compactBlueprint, app)
+      return createService(name, blueprintCompact, app)
     }
   }
 
