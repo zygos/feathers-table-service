@@ -1,6 +1,6 @@
 {
   "name": "feathers-table-service",
-  "version": "3.0.0-25",
+  "version": "3.0.0-26",
   "description": "",
   "main": "index.js",
   "types": "dist/index.d.ts",
