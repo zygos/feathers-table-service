@@ -1,5 +1,4 @@
 import { Application } from '@feathersjs/feathers'
-import feathersKnexMain from 'feathers-knex'
 // import inheritHooks from './inheritHooks'
 import { Blueprint, Options, BlueprintFactory } from './@types'
 import * as hooks from './hooks'
@@ -24,7 +23,7 @@ export function tableServiceFactory({
   doMigrateSchema = true,
   doRunAfterAll = true,
   doUseSnakeCase = false,
-  feathersKnex = feathersKnexMain,
+  feathersKnex,
   lifecycle = {},
   globalHooks = {},
   paginate = { default: 10, max: 50 },
