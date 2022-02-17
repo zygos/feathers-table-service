@@ -1,7 +1,14 @@
 import { CaseFunction, Options, Table } from './@types'
-import Knex from 'knex'
+import { Knex } from 'knex'
 import { constraintTypes, constraintTypesKeys } from './constraints'
 import { capitalize, uncastArray } from './utils'
+import { isNil } from 'rambda'
+
+type CreateTableBuilder = any
+
+const omitNils = (object: Record<string, unknown>) => Object.fromEntries(Object
+  .entries(object)
+  .filter(([_, value]) => !isNil(value)))
 
 function hasNoMatchingConstraint(matchingIndexArr: any[][]) {
   return ([columnName, constraintTypeKey, constraint]: any) => {
@@ -68,7 +75,7 @@ export default function migrateIndexesFactory(safeCase: CaseFunction, options: O
       .filter(hasNoMatchingConstraint(constraintsWanted))
 
     if (constraintsDrop.length) {
-      await knex.schema.alterTable(table.name, (tableBuilder: Knex.TableBuilder) => {
+      await knex.schema.alterTable(table.name, (tableBuilder: CreateTableBuilder) => {
         constraintsDrop.forEach(([columnName, constraintTypeKey, constraint]) => {
           const dropKey = constraintTypes[constraintTypeKey].dropKey ||
             `drop${capitalize(constraintTypeKey)}`
@@ -79,7 +86,7 @@ export default function migrateIndexesFactory(safeCase: CaseFunction, options: O
     }
 
     if (constraintsAdd.length) {
-      await knex.schema.alterTable(table.name, (tableBuilder: Knex.TableBuilder) => {
+      await knex.schema.alterTable(table.name, (tableBuilder: CreateTableBuilder) => {
         constraintsAdd.forEach(([columnName, constraintType, constraint]) => {
           const columnsArgument = uncastArray(constraint.columns)
 
@@ -95,7 +102,20 @@ export default function migrateIndexesFactory(safeCase: CaseFunction, options: O
           } else if (constraintType === 'unique') {
             tableBuilder.unique(columnsArgument, constraint.name)
           } else if (constraintType === 'index') {
-            tableBuilder.index(columnsArgument, constraint.name, constraint.type)
+            const options = omitNils({
+              indexType: constraint.type,
+              storageEngineIndexType: constraint.storageType,
+              predicate: typeof constraint.predicate === 'function'
+                ? constraint.predicate(knex)
+                : undefined,
+            })
+
+            tableBuilder
+              .index(
+                columnsArgument,
+                constraint.name,
+                options,
+              )
           }
         })
       })

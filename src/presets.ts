@@ -3,7 +3,7 @@ import { maybeCall } from './utils'
 const patterns: { [key: string]: any } = {
   name: /^[\w'\-,.]*[^0-9_!¡?÷?¿/\\+=@#$%ˆ&*(){}|~<>;:[\]]{2,}$/,
   password: /^[\w-!@#$%/^&*=+~,.;()]*$/,
-  phoneNumber: /^[+\-\(\) 0-9]*$/,
+  phoneNumber: /^[+\-() 0-9]*$/,
   slug: /^[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*$/,
 }
 const stringPatterns: { [key: string]: any } = Object

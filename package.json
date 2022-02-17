@@ -1,6 +1,6 @@
 {
   "name": "feathers-table-service",
-  "version": "3.0.0-24",
+  "version": "3.0.0-25",
   "description": "",
   "main": "index.js",
   "types": "dist/index.d.ts",
@@ -14,29 +14,29 @@
   "author": "zygos",
   "license": "ISC",
   "devDependencies": {
-    "@feathersjs/socketio": "^4.3.5",
-    "@types/debug": "^4.1.5",
-    "@types/feathersjs__feathers": "^3.1.5",
-    "@types/feathersjs__socket-commons": "^3.1.4",
-    "@typescript-eslint/eslint-plugin": "^2.3.3",
-    "@typescript-eslint/parser": "^2.3.3",
-    "eslint": "^6.5.1",
-    "eslint-config-standard": "^14.1.0",
-    "eslint-plugin-import": "^2.18.2",
-    "eslint-plugin-node": "^10.0.0",
-    "eslint-plugin-promise": "^4.2.1",
-    "eslint-plugin-standard": "^4.0.1",
-    "knex": "^0.19.5",
-    "typescript": "^4.1.2"
+    "@feathersjs/socketio": "^4.5.11",
+    "@types/debug": "^4.1.7",
+    "@types/feathersjs__feathers": "^3.1.8",
+    "@types/feathersjs__socket-commons": "^3.1.7",
+    "@typescript-eslint/eslint-plugin": "^5.4.0",
+    "@typescript-eslint/parser": "^5.4.0",
+    "eslint": "^8.3.0",
+    "eslint-config-standard": "^16.0.3",
+    "eslint-plugin-import": "^2.25.3",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^5.1.1",
+    "eslint-plugin-standard": "^4.1.0",
+    "knex": "^0.95.14",
+    "typescript": "^4.5.2"
   },
   "dependencies": {
-    "@feathersjs/errors": "^4.3.4",
-    "@types/jest": "^26.0.18",
-    "change-case": "^3.1.0",
-    "feathers-knex": "^7.1.0",
-    "jest": "^26.6.3",
-    "rambda": "^6.4.0",
-    "ts-jest": "^26.4.4"
+    "@feathersjs/errors": "^4.5.11",
+    "@types/jest": "^27.0.3",
+    "change-case": "^4.1.2",
+    "feathers-knex": "^8.0.1",
+    "jest": "^27.3.1",
+    "rambda": "^6.9.0",
+    "ts-jest": "^27.0.7"
   },
   "files": [
     "dist/**/*"

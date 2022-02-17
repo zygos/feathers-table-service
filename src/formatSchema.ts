@@ -8,7 +8,6 @@ const defaultField = {
   nullable: true,
   onDelete: null,
   onUpdate: null,
-  type: 'string',
   transform: undefined,
   transformForce: false,
   primary: false,

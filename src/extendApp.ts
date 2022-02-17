@@ -7,10 +7,20 @@ interface ServiceSeedResult {
 }
 
 export default function extendApp(app: Application, { apiBase }: Options) {
+  const serviceCache = new Map()
+
   if (typeof app.getService === 'function') return
 
   app.getService = function getService(name) {
-    return app.service(`${apiBase}${name}`)
+    const serviceCached = serviceCache.get(name)
+
+    if (serviceCached) return serviceCached
+
+    const service = app.service(`${apiBase}${name}`)
+
+    serviceCache.set(name, service)
+
+    return service
   }
 
   app.registerService = function registerService(name: string, ...service) {

@@ -1,6 +1,7 @@
 import { CaseFunction, ConstraintDefinition } from './@types'
 import { isPlainObject, castArray } from './utils'
-import Knex = require('knex')
+import { Knex } from 'knex'
+import { match } from 'rambda'
 
 function invalidConstraintError(constraintTypeName: String, tableName: String, columnName: String) {
   return new Error(`Invalid "${constraintTypeName}" constraint for ${tableName}.${columnName}`)
@@ -155,15 +156,14 @@ export const constraintTypes: { [key: string]: ConstraintDefinition } = {
         .filter((index: any) => !index.indexname.endsWith('_pkey'))
         .map((index: any) => {
           const [columnName, constraintType] = inferNames(index.indexname, tableName)
-          const [indexType, columnsRaw] = index
+          const indexSplit = index
             .indexdef
             .split('USING ')
             .slice(-1)[0]
-            .replace(')', '')
-            .split(' (')
+          const [_, indexType, columnsRaw] = matchIndex(indexSplit)
           const columns = columnsRaw
             .split(',')
-            .map((column: string) => column.trim())
+            .map((column) => column.trim())
 
           return [
             columnName,
@@ -233,6 +233,8 @@ export const constraintTypes: { [key: string]: ConstraintDefinition } = {
     },
   },
 }
+
+const matchIndex = match(/(\w+)\s?\(([\w\s,]+)\)/)
 
 export const constraintTypesKeys = Object.keys(constraintTypes)
 

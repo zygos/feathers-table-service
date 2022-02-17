@@ -215,3 +215,20 @@ export interface ConstraintDefinition {
 }
 
 export type CaseFunction = (name: string | String, doOverwriteDot?: boolean) => string
+
+/* eslint-disable camelcase */
+export interface ColumnInfo {
+  tableName: string
+  columnName: string
+  columnDefault: string
+  isIdentity: string
+  dataType: string
+  udtName: string
+  [key: string]: unknown
+}
+
+export interface PropertiesInfo {
+  tableName: string
+  properties: TableSchemaProperties
+}
+/* eslint-enable camelcase */

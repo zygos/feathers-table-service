@@ -1,5 +1,7 @@
+import { Blueprint, BlueprintFactory, ColumnInfo, Options, PropertiesInfo } from './@types'
+import { JSONB, STRING } from './presets'
 import { Application } from '@feathersjs/feathers'
-import { Blueprint, BlueprintFactory, Options } from './@types'
+import { groupBy, prop } from 'rambda'
 import buildTableFactory from './buildTableFactory'
 import formatSchema from './formatSchema'
 import formatTableSchemaFactory from './formatTableSchemaFactory'
@@ -8,12 +10,15 @@ import migrateIndexesFactory from './migrateIndexesFactory'
 import safeCaseFactory from './safeCaseFactory'
 import setupChannelsFactory from './setupChannelsFactory'
 import { castArray, maybeCall } from './utils'
+import { TABLE_SERVICE_SCHEMAS } from './consts'
 
 export default function createServiceFactory(options: Options, afterAll: [string, Function][]) {
   const safeCase = safeCaseFactory(options)
   const formatTableSchema = formatTableSchemaFactory(safeCase)
   const buildTable = buildTableFactory(safeCase, options)
   const migrateIndexes = migrateIndexesFactory(safeCase, options)
+  let columnsMap: Record<string, ColumnInfo[]>
+  let propertiesExistingMap: Record<string, PropertiesInfo[]>
 
   const {
     doDropTables,
@@ -37,6 +42,43 @@ export default function createServiceFactory(options: Options, afterAll: [string
     }
 
     const knex = app.get('knexClient')
+
+    // run lazily only if needed
+    if (!columnsMap) {
+      const [schemaInfo, propertiesInfo]: [Record<string, ColumnInfo[]>, PropertiesInfo[]] = await Promise
+        .all([
+          knex.schema
+            .raw(`select * from information_schema.columns where table_schema = current_schema()`),
+          (async () => {
+            const hasSchemasTable = await knex.schema
+              .hasTable(TABLE_SERVICE_SCHEMAS)
+
+            if (!hasSchemasTable) {
+              await buildTable(knex, [], {}, {
+                name: TABLE_SERVICE_SCHEMAS,
+                schema: {
+                  properties: {
+                    tableName: STRING({
+                      primary: true,
+                    }),
+                    properties: JSONB(),
+                  },
+                },
+              })
+
+              return []
+            }
+
+            return (await knex(TABLE_SERVICE_SCHEMAS).select())
+          })(),
+        ])
+
+      const columnsExisting: ColumnInfo[] = schemaInfo.rows
+
+      columnsMap = groupBy(prop('tableName'), columnsExisting)
+      propertiesExistingMap = groupBy(prop('tableName'), propertiesInfo)
+    }
+
     const blueprint = formatTableSchema(name, blueprintProvided)
 
     const feathersServiceFactory = () => {
@@ -45,7 +87,7 @@ export default function createServiceFactory(options: Options, afterAll: [string
         // TODO: move paginate to serviceOptions
         paginate: { ...paginate },
         ...maybeCall(serviceOptions),
-        ...blueprint.knex,
+        ...blueprint.knex, // TODO: decouple from knex
       })
 
       // assign table schema name to custom services
@@ -113,7 +155,17 @@ export default function createServiceFactory(options: Options, afterAll: [string
           }
         }
 
-        await buildTable(knex, blueprint.table)
+        const tableName = safeCase(blueprint.table.name)
+        const propertiesExisting = propertiesExistingMap[tableName]
+          ? propertiesExistingMap[tableName][0].properties
+          : {}
+
+        await buildTable(
+          knex,
+          columnsMap[tableName],
+          propertiesExisting,
+          blueprint.table,
+        )
 
         if (!doDropTables && doMigrateIndexes) {
           await migrateIndexes(knex, blueprint.table)
