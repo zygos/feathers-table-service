@@ -64,8 +64,6 @@ export default function buildTableFactory(safeCase: CaseFunction, options: Optio
 
           if (!Object.keys(propertiesToAlter).length) return {}
 
-          console.log('propertiesToAlter', Object.keys(propertiesToAlter))
-
           // TODO: alter columns only based on diff
           await knex.schema.alterTable(table.name, buildColumns(propertiesToAlter))
 
@@ -79,8 +77,6 @@ export default function buildTableFactory(safeCase: CaseFunction, options: Optio
           if (!Object.keys(propertiesToAdd).length) return {}
 
           const propertiesToAddStatic = map(prop('_static'), propertiesToAdd)
-
-          console.log('propertiesToAddStatic', Object.keys(propertiesToAddStatic))
 
           await knex.schema.table(table.name, buildColumns(propertiesToAddStatic))
 
@@ -102,8 +98,6 @@ export default function buildTableFactory(safeCase: CaseFunction, options: Optio
 
       if (!columnNamesToDrop.length) return []
 
-      console.log('columnNamesToDrop', columnNamesToDrop)
-
       await knex.schema.alterTable(table.name, (table: Knex.TableBuilder) => {
         table.dropColumns(...columnNamesToDrop)
       })
@@ -121,14 +115,6 @@ export default function buildTableFactory(safeCase: CaseFunction, options: Optio
     })()
 
     if (Object.keys(propertiesStaticsToUpdate).length > 0 || propertiesKeysRemoved.length) {
-      if (Object.keys(propertiesStaticsToUpdate).length) {
-        console.log('propertiesStaticsToUpdate', propertiesStaticsToUpdate)
-      }
-
-      if (propertiesKeysRemoved.length) {
-        console.log('propertiesKeysRemoved', propertiesKeysRemoved)
-      }
-
       const propertiesPreviousToMerge = omit(propertiesKeysRemoved, propertiesPrevious)
       // TODO: upsert update all at the same time
       // TODO: update only altered/added/dropped columns

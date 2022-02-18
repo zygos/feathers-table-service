@@ -44,11 +44,11 @@ export default function createServiceFactory(options: Options, afterAll: [string
     const knex = app.get('knexClient')
 
     // run lazily only if needed
-    if (!columnsMap) {
+    if (!columnsMap && knex) {
       const [schemaInfo, propertiesInfo]: [Record<string, ColumnInfo[]>, PropertiesInfo[]] = await Promise
         .all([
           knex.schema
-            .raw(`select * from information_schema.columns where table_schema = current_schema()`),
+            .raw('select * from information_schema.columns where table_schema = current_schema()'),
           (async () => {
             const hasSchemasTable = await knex.schema
               .hasTable(TABLE_SERVICE_SCHEMAS)
