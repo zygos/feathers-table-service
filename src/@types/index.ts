@@ -61,7 +61,7 @@ export interface Blueprint {
   name?: string
   channels?: { [s: string]: Function } | Function
   hooks?: ServiceHooks
-  knex?: {
+  serviceOptions?: {
     name?: string
     params?: {
       Model: any
@@ -71,6 +71,7 @@ export interface Blueprint {
       }
     }
   }
+  serviceClass?: any,
   service?: any
   middleware?: {
     before?: Function | Function[],

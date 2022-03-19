@@ -29,7 +29,7 @@ export default function createServiceFactory(options: Options, afterAll: [string
     globalHooks = {},
     lifecycle = {},
     paginate,
-    serviceOptions,
+    serviceOptions: serviceOptionsGlobal,
   } = options
 
   async function createService(
@@ -82,12 +82,12 @@ export default function createServiceFactory(options: Options, afterAll: [string
     const blueprint = formatTableSchema(name, blueprintProvided)
 
     const feathersServiceFactory = () => {
-      const rawService = blueprint.service || feathersKnex({
+      const rawService = blueprint.service || (blueprint.serviceClass || feathersKnex)({
         Model: knex,
         // TODO: move paginate to serviceOptions
         paginate: { ...paginate },
-        ...maybeCall(serviceOptions),
-        ...blueprint.knex, // TODO: decouple from knex
+        ...maybeCall(serviceOptionsGlobal),
+        ...blueprint.serviceOptions,
       })
 
       // assign table schema name to custom services
