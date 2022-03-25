@@ -15,12 +15,25 @@ export default async function sendDataToChannels(
 
   if (!access) return channels
 
+  const accessEntries = Object.entries(access)
+
+  if (!accessEntries.length) return channels
+
   return await Promise.all(channels
     .map(async(channel) => {
-      if (!channel.ctx) return channel
+      try {
+        // TODO: investigate cases when channel ctx is missing
+        if (!channel.ctx) return channel
 
-      const omitter = await getOmitter(channel, access, record)
+        const omitter = await getOmitter(channel, accessEntries, record)
 
-      return channel.send(omitter(record))
+        return channel.send(omitter(record))
+      } catch (error) {
+        const logger = app.get('logger')
+
+        if (logger) logger.error(error)
+
+        throw error
+      }
     }))
 }

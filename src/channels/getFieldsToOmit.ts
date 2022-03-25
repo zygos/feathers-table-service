@@ -2,12 +2,35 @@ import { HookContext } from '@feathersjs/feathers'
 import { Predicate } from '../@types'
 import chainPredicate from '../hooks/chainPredicate'
 
-export default async function getFieldsToOmit(access: Record<string, Predicate>, ctx: HookContext) {
-  const promises = Object.entries(access).map(async([key, value]) => {
-    const keyAllowed = await chainPredicate(value, ctx)
-    return !keyAllowed ? key : null
-  })
-  const results = await Promise.all(promises)
+export default async function getFieldsToOmit(
+  accessEntries: [string, Predicate][],
+  ctx: HookContext,
+) {
+  const cache = accessEntries.length > 1 ? new Map() : undefined
+  const hasCache = cache !== undefined
 
-  return results.filter(Boolean) as string[]
+  const keysOmitted = await Promise.all(accessEntries
+    .map(async([key, predicateHook]) => {
+      let shouldPreserve
+
+      if (hasCache) {
+        const shouldPreserveCached = cache.get(predicateHook)
+
+        if (shouldPreserveCached !== undefined) {
+          shouldPreserve = shouldPreserveCached
+        }
+      }
+
+      if (shouldPreserve === undefined) {
+        shouldPreserve = chainPredicate(predicateHook, ctx)
+
+        if (hasCache) {
+          cache.set(predicateHook, shouldPreserve)
+        }
+      }
+
+      return (await shouldPreserve) ? null : key
+    }))
+
+  return keysOmitted.filter(Boolean) as string[]
 }

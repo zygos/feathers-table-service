@@ -7,6 +7,7 @@ export default function setupChannelsFactory(app: Application) {
     if (!app.channels || app.channels.length === 0) return []
 
     const connections: Connection[] = []
+
     app
       .channel(app.channels)
       .filter((connection) => {
@@ -31,32 +32,28 @@ export default function setupChannelsFactory(app: Application) {
       .leave((connection: Connection) => userId === connection.user.id)
   }
 
+  const globalEvents = ['connection', 'login', 'logout']
+  const joinLeaveUtils = Object.freeze({ joinChannel, leaveChannel })
+
   return function setupChannels(
     service: any,
-    channels: { [key: string]: Function } | Function): void {
+    channels: { [key: string]: Function } | Function,
+  ): void {
     if (!channels) return
 
+    const appServiceObject = Object.freeze({ app, service })
+
     if (typeof channels === 'function') {
-      return setupChannels(service, channels({ app, service }))
+      return setupChannels(service, channels(appServiceObject))
     }
 
-    const globalEvents = ['connection', 'login', 'logout']
-
-    // TODO: remove for loop
     for (const event in channels) {
       if (globalEvents.includes(event)) {
         app.on(event, (payload: any, context: EventContext) =>
-          channels[event](payload, {
-            app,
-            service,
-            user: (context.connection && context.connection.user)
-              ? context.connection.user
-              : null,
-            ...context,
-          }))
+          channels[event](payload, context, appServiceObject))
       } else {
         const eventCallback = (payload: any, ctx: HookContext) =>
-          channels[event](payload, { joinChannel, leaveChannel, ...ctx })
+          channels[event](payload, ctx, joinLeaveUtils)
 
         if (event === 'all') {
           service.publish(eventCallback)

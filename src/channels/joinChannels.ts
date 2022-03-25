@@ -7,6 +7,7 @@ export default async function joinChannels(app: Application, connection: Connect
     const channel: ChannelWithContext = app.channel(configuration.name)
     if (!channel.ctx) {
       channel.ctx = {
+        app,
         params: {
           authenticated: true,
           provider: 'socketio',
