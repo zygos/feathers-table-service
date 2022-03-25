@@ -1,6 +1,7 @@
 import { ChannelWithContext, Predicate } from '../@types'
 import { Application } from '@feathersjs/feathers'
-import getOmitter from './getOmitter'
+import getChannelFieldsToOmit from './getChannelFieldsToOmit'
+import { omit } from 'rambda'
 
 export default async function sendDataToChannels(
   app: Application,
@@ -25,9 +26,12 @@ export default async function sendDataToChannels(
         // TODO: investigate cases when channel ctx is missing
         if (!channel.ctx) return channel
 
-        const omitter = await getOmitter(channel, accessEntries, record)
+        const fieldsToOmit = await getChannelFieldsToOmit(channel, accessEntries, record)
 
-        return channel.send(omitter(record))
+        // TODO: cache same fieldsToOmit
+        return fieldsToOmit.length
+          ? channel.send(omit(fieldsToOmit, record))
+          : channel.send(record)
       } catch (error) {
         const logger = app.get('logger')
 

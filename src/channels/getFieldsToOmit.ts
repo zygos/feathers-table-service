@@ -1,7 +1,8 @@
 import { HookContext } from '@feathersjs/feathers'
 import { Predicate } from '../@types'
-import chainPredicate from '../hooks/chainPredicate'
+import chainPredicateMixed from './chainPredicateMixed'
 
+// TODO: allow to be fully sync
 export default async function getFieldsToOmit(
   accessEntries: [string, Predicate][],
   ctx: HookContext,
@@ -10,7 +11,7 @@ export default async function getFieldsToOmit(
   const hasCache = cache !== undefined
 
   const keysOmitted = await Promise.all(accessEntries
-    .map(async([key, predicateHook]) => {
+    .map(([key, predicateHook]) => {
       let shouldPreserve
 
       if (hasCache) {
@@ -22,14 +23,19 @@ export default async function getFieldsToOmit(
       }
 
       if (shouldPreserve === undefined) {
-        shouldPreserve = chainPredicate(predicateHook, ctx)
+        shouldPreserve = chainPredicateMixed(predicateHook, ctx)
 
         if (hasCache) {
           cache.set(predicateHook, shouldPreserve)
         }
       }
 
-      return (await shouldPreserve) ? null : key
+      if (typeof shouldPreserve === 'boolean') {
+        return shouldPreserve ? null : key
+      }
+
+      return shouldPreserve
+        .then((shouldPreserve: boolean) => shouldPreserve ? null : key)
     }))
 
   return keysOmitted.filter(Boolean) as string[]
