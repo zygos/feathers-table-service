@@ -8,11 +8,12 @@ export default function formatTableSchemaFactory(safeCase: Function) {
     compactBlueprint.name = name
 
     if (!compactBlueprint.service) {
-      if (!compactBlueprint.serviceOptions) {
+      if (compactBlueprint.serviceOptions === undefined) {
         compactBlueprint.serviceOptions = {}
-        if (!compactBlueprint.serviceOptions.name) {
-          compactBlueprint.serviceOptions.name = name
-        }
+      }
+
+      if (compactBlueprint.serviceOptions.name === undefined) {
+        compactBlueprint.serviceOptions.name = name
       }
     }
 

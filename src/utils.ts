@@ -18,6 +18,6 @@ export function uncastArray(element: any) {
   return (element.length === 1) ? element[0] : element
 }
 
-export function maybeCall(fn: any) {
-  return typeof fn === 'function' ? fn() : fn
+export function maybeCall(method: unknown, methodArguments: unknown[] = []) {
+  return typeof method === 'function' ? method(...methodArguments) : method
 }

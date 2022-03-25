@@ -58,18 +58,22 @@ export interface ChannelWithContext extends Channel {
 }
 
 export interface Blueprint {
+  id?: string
   name?: string
   channels?: { [s: string]: Function } | Function
   hooks?: ServiceHooks
   serviceOptions?: {
     name?: string
-    params?: {
-      Model: any
-      paginate: {
-        default: number
-        max: number
-      }
+    Model?: any
+    reader?: any
+    paginate?: {
+      default: number
+      max: number
     }
+    multi?: boolean | string[]
+    schema?: any
+    events?: string[]
+    whitelist?: string[]
   }
   serviceClass?: any,
   service?: any
@@ -137,10 +141,6 @@ export type Options = {
   globalHooks?: GlobalHooks,
   lifecycle?: {
     processBlueprintAfter?: Function
-  },
-  paginate: {
-    default: number
-    max: number
   },
   runAfterAllServices: string[] | null,
   serviceOptions?: object | Function,

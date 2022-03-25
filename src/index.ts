@@ -26,7 +26,6 @@ export function tableServiceFactory({
   feathersKnex,
   lifecycle = {},
   globalHooks = {},
-  paginate = { default: 10, max: 50 },
   runAfterAllServices = null,
   serviceOptions = {},
 }: Options) {
@@ -44,7 +43,6 @@ export function tableServiceFactory({
     lifecycle,
     feathersKnex,
     globalHooks,
-    paginate,
     runAfterAllServices,
     serviceOptions,
   }

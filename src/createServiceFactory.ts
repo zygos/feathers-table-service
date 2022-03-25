@@ -28,7 +28,6 @@ export default function createServiceFactory(options: Options, afterAll: [string
     feathersKnex,
     globalHooks = {},
     lifecycle = {},
-    paginate,
     serviceOptions: serviceOptionsGlobal,
   } = options
 
@@ -49,7 +48,7 @@ export default function createServiceFactory(options: Options, afterAll: [string
         .all([
           knex.schema
             .raw('select * from information_schema.columns where table_schema = current_schema()'),
-          (async () => {
+          (async() => {
             const hasSchemasTable = await knex.schema
               .hasTable(TABLE_SERVICE_SCHEMAS)
 
@@ -83,10 +82,7 @@ export default function createServiceFactory(options: Options, afterAll: [string
 
     const feathersServiceFactory = () => {
       const rawService = blueprint.service || (blueprint.serviceClass || feathersKnex)({
-        Model: knex,
-        // TODO: move paginate to serviceOptions
-        paginate: { ...paginate },
-        ...maybeCall(serviceOptionsGlobal),
+        ...maybeCall(serviceOptionsGlobal, [app]),
         ...blueprint.serviceOptions,
       })
 
