@@ -1,10 +1,10 @@
 import { Application } from '@feathersjs/feathers'
 import { Options, TableSchema } from './@types'
 
-interface ServiceSeedResult {
-  serviceName: string
-  results: Array<Record<string, unknown>>
-}
+// interface ServiceSeedResult {
+//   serviceName: string
+//   results: Array<Record<string, unknown>>
+// }
 
 export default function extendApp(app: Application, { apiBase }: Options) {
   const serviceCache = new Map()
@@ -56,6 +56,7 @@ export default function extendApp(app: Application, { apiBase }: Options) {
           if (!isEveryDone()) return
 
           app.removeListener('tableService.afterAll', eventListener)
+
           resolve(getDoneResults())
         }
 

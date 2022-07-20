@@ -59,6 +59,7 @@ export function tableServiceFactory({
     if (typeof name !== 'string') {
       throw new Error('First tableService argument is name: String')
     }
+
     return async function initialize(app: Application) {
       if (!appReference) appReference = app
 

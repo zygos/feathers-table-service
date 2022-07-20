@@ -17,8 +17,6 @@ export default function createServiceFactory(options: Options, afterAll: [string
   const formatTableSchema = formatTableSchemaFactory(safeCase)
   const buildTable = buildTableFactory(safeCase, options)
   const migrateIndexes = migrateIndexesFactory(safeCase, options)
-  let columnsMap: Record<string, ColumnInfo[]>
-  let propertiesExistingMap: Record<string, PropertiesInfo[]>
 
   const {
     doDropTables,
@@ -31,6 +29,59 @@ export default function createServiceFactory(options: Options, afterAll: [string
     serviceOptions: serviceOptionsGlobal,
   } = options
 
+  const getColumnsAndProperties = (() => {
+    let resultPending: Promise<{
+      columnsMap: Record<string, ColumnInfo[]>
+      propertiesExistingMap: Record<string, PropertiesInfo[]>
+    }>
+
+    return (knex: any) => {
+      // run lazily only if needed
+      if (!resultPending && knex) {
+        resultPending = (async() => {
+          const [
+            schemaInfo,
+            propertiesInfo,
+          ]: [Record<string, ColumnInfo[]>, PropertiesInfo[]] = await Promise.all([
+            knex.schema
+              .raw('select * from information_schema.columns where table_schema = current_schema()'),
+            (async() => {
+              const hasSchemasTable = await knex.schema
+                .hasTable(TABLE_SERVICE_SCHEMAS)
+
+              if (!hasSchemasTable) {
+                await buildTable(knex, [], {}, {
+                  name: TABLE_SERVICE_SCHEMAS,
+                  schema: {
+                    properties: {
+                      tableName: STRING({
+                        primary: true,
+                      }),
+                      properties: JSONB(),
+                    },
+                  },
+                })
+
+                return []
+              }
+
+              return await knex(TABLE_SERVICE_SCHEMAS).select()
+            })(),
+          ])
+
+          const columnsExisting: ColumnInfo[] = schemaInfo.rows
+
+          return {
+            columnsMap: groupBy(prop('tableName'), columnsExisting),
+            propertiesExistingMap: groupBy(prop('tableName'), propertiesInfo),
+          }
+        })()
+      }
+
+      return resultPending
+    }
+  })()
+
   async function createService(
     name: string,
     blueprintProvided: Blueprint | BlueprintFactory,
@@ -42,42 +93,7 @@ export default function createServiceFactory(options: Options, afterAll: [string
 
     const knex = app.get('knexClient')
 
-    // run lazily only if needed
-    if (!columnsMap && knex) {
-      const [schemaInfo, propertiesInfo]: [Record<string, ColumnInfo[]>, PropertiesInfo[]] = await Promise
-        .all([
-          knex.schema
-            .raw('select * from information_schema.columns where table_schema = current_schema()'),
-          (async() => {
-            const hasSchemasTable = await knex.schema
-              .hasTable(TABLE_SERVICE_SCHEMAS)
-
-            if (!hasSchemasTable) {
-              await buildTable(knex, [], {}, {
-                name: TABLE_SERVICE_SCHEMAS,
-                schema: {
-                  properties: {
-                    tableName: STRING({
-                      primary: true,
-                    }),
-                    properties: JSONB(),
-                  },
-                },
-              })
-
-              return []
-            }
-
-            return (await knex(TABLE_SERVICE_SCHEMAS).select())
-          })(),
-        ])
-
-      const columnsExisting: ColumnInfo[] = schemaInfo.rows
-
-      columnsMap = groupBy(prop('tableName'), columnsExisting)
-      propertiesExistingMap = groupBy(prop('tableName'), propertiesInfo)
-    }
-
+    const { columnsMap, propertiesExistingMap } = await getColumnsAndProperties(knex)
     const blueprint = formatTableSchema(name, blueprintProvided)
 
     const feathersServiceFactory = () => {
@@ -107,7 +123,9 @@ export default function createServiceFactory(options: Options, afterAll: [string
         }
       }
 
-      if (!blueprint.extend || typeof rawService.extend !== 'function') return rawService
+      if (!blueprint.extend || typeof rawService.extend !== 'function') {
+        return rawService
+      }
 
       const serviceExtension = typeof blueprint.extend === 'function'
         ? blueprint.extend(app)

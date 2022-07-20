@@ -1,13 +1,13 @@
 import { CaseFunction, ColumnInfo, Options, Table, TableSchemaProperties } from './@types'
 import { Knex } from 'knex'
 import { TABLE_SERVICE_SCHEMAS } from './consts'
-import { filter, map, omit, prop, propEq } from 'rambda'
+import { filter, map, merge, omit, prop, propEq } from 'rambda'
 import buildColumns from './buildColumnsFactory'
 
-interface ColumnInfoExistance extends ColumnInfo {
-  columnName: string
-  doesExist: boolean
-}
+// interface ColumnInfoExistance extends ColumnInfo {
+//   columnName: string
+//   doesExist: boolean
+// }
 
 export default function buildTableFactory(safeCase: CaseFunction, options: Options) {
   return async function buildTable(
@@ -37,53 +37,53 @@ export default function buildTableFactory(safeCase: CaseFunction, options: Optio
       }))
 
     if (!await knex.schema.hasTable(table.name)) {
-      return knex.schema
-        .createTable(table.name, buildColumns(properties))
+      return Promise.all([
+        knex.schema.createTable(table.name, buildColumns(properties)),
+        setSchemaRecord(knex, table.name, properties),
+      ])
     }
 
-    const propertiesStaticsToUpdate: TableSchemaProperties = await (async() => {
-      return {
-        ...await (async() => {
-          if (!options.doAlterColumns) return {}
+    const propertiesStaticsToUpdate: TableSchemaProperties = await (async() => ({
+      ...await (async() => {
+        if (!options.doAlterColumns) return {}
 
-          const propertiesToAlter = Object.fromEntries(Object
-            .entries(properties)
-            .filter(([_, property]) => property.doesExist === true)
-            .flatMap(([propertyKey, propertyCurrent]) => {
-              const diff = getDifference(
-                propertiesPrevious[propertyKey] || {},
-                propertyCurrent._static || {},
-              )
+        const propertiesToAlter = Object.fromEntries(Object
+          .entries(properties)
+          .filter(([_, property]) => property.doesExist === true)
+          .flatMap(([propertyKey, propertyCurrent]) => {
+            const diff = getDifference(
+              propertiesPrevious[propertyKey] || {},
+              propertyCurrent._static || {},
+            )
 
-              if (!Object.keys(diff).length) return []
+            if (!Object.keys(diff).length) return []
 
-              return [
-                [propertyKey, propertyCurrent._static],
-              ]
-            }))
+            return [
+              [propertyKey, propertyCurrent._static],
+            ]
+          }))
 
-          if (!Object.keys(propertiesToAlter).length) return {}
+        if (!Object.keys(propertiesToAlter).length) return {}
 
-          // TODO: alter columns only based on diff
-          await knex.schema.alterTable(table.name, buildColumns(propertiesToAlter))
+        // TODO: alter columns only based on diff
+        await knex.schema.alterTable(table.name, buildColumns(propertiesToAlter))
 
-          return propertiesToAlter
-        })(),
-        ...await (async() => {
-          if (!options.doAddColumns) return {}
+        return propertiesToAlter
+      })(),
+      ...await (async() => {
+        if (!options.doAddColumns) return {}
 
-          const propertiesToAdd = filter(property => property.doesExist === false, properties)
+        const propertiesToAdd = filter(property => property.doesExist === false, properties)
 
-          if (!Object.keys(propertiesToAdd).length) return {}
+        if (!Object.keys(propertiesToAdd).length) return {}
 
-          const propertiesToAddStatic = map(prop('_static'), propertiesToAdd)
+        const propertiesToAddStatic = map(prop('_static'), propertiesToAdd)
 
-          await knex.schema.table(table.name, buildColumns(propertiesToAddStatic))
+        await knex.schema.table(table.name, buildColumns(propertiesToAddStatic))
 
-          return propertiesToAddStatic
-        })(),
-      }
-    })()
+        return propertiesToAddStatic
+      })(),
+    }))()
 
     const propertiesKeysRemoved: string[] = await (async() => {
       if (!options.doDropColumns) return []
@@ -119,19 +119,23 @@ export default function buildTableFactory(safeCase: CaseFunction, options: Optio
       // TODO: upsert update all at the same time
       // TODO: update only altered/added/dropped columns
       // TODO: only update if something has changed
-      await knex(TABLE_SERVICE_SCHEMAS)
-        .insert({
-          table_name: table.name,
-          properties: JSON.stringify({
-            ...propertiesPreviousToMerge,
-            ...propertiesStaticsToUpdate,
-          }),
-        })
-        .onConflict('table_name')
-        .merge()
+      await setSchemaRecord(
+        knex,
+        table.name,
+        merge(propertiesPreviousToMerge, propertiesStaticsToUpdate),
+      )
     }
   }
 }
+
+const setSchemaRecord = (knex: Knex, tableName: string, properties: TableSchemaProperties) =>
+  knex(TABLE_SERVICE_SCHEMAS)
+    .insert({
+      table_name: tableName,
+      properties: JSON.stringify(properties),
+    })
+    .onConflict('table_name')
+    .merge()
 
 const getDifference = (() => {
   const { equals } = require('rambda')
