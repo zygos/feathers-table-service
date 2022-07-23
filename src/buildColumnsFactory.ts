@@ -1,5 +1,4 @@
-import { CaseFunction, TableSchemaProperties } from './@types'
-import { isPlainObject } from './utils'
+import { TableSchemaProperties } from './@types'
 
 type CreateTableBuilder = any
 

@@ -12,6 +12,11 @@ import setupChannelsFactory from './setupChannelsFactory'
 import { castArray, maybeCall } from './utils'
 import { TABLE_SERVICE_SCHEMAS } from './consts'
 
+type ColumnsAndPropertiesPending = Promise<{
+  columnsMap: Record<string, ColumnInfo[]>
+  propertiesExistingMap: Record<string, PropertiesInfo[]>
+}>
+
 export default function createServiceFactory(options: Options, afterAll: [string, Function][]) {
   const safeCase = safeCaseFactory(options)
   const formatTableSchema = formatTableSchemaFactory(safeCase)
@@ -30,14 +35,18 @@ export default function createServiceFactory(options: Options, afterAll: [string
   } = options
 
   const getColumnsAndProperties = (() => {
-    let resultPending: Promise<{
-      columnsMap: Record<string, ColumnInfo[]>
-      propertiesExistingMap: Record<string, PropertiesInfo[]>
-    }>
+    let resultPending: ColumnsAndPropertiesPending
 
     return (knex: any) => {
       // run lazily only if needed
       if (!resultPending && knex) {
+        if (doMigrateSchema && doDropTables) {
+          return Promise.resolve({
+            columnsMap: {},
+            propertiesExistingMap: {},
+          }) as ColumnsAndPropertiesPending
+        }
+
         resultPending = (async() => {
           const [
             schemaInfo,
