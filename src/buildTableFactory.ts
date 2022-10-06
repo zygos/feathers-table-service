@@ -96,7 +96,7 @@ export default function buildTableFactory(safeCase: CaseFunction, options: Optio
         .values(properties)
         .map(property => property.columnName)
 
-      const columnNamesToDrop = tableColumns
+      const columnNamesToDrop = (tableColumns || [])
         .map(prop('columnName'))
         .filter(columnName => !columnNames.includes(columnName))
 
