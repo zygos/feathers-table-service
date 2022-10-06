@@ -185,7 +185,7 @@ export default function createServiceFactory(options: Options, afterAll: [string
 
         await buildTable(
           knex,
-          columnsMap[tableName],
+          columnsMap[tableName] || [],
           propertiesExisting,
           blueprint.table,
         )

@@ -24,7 +24,7 @@ export default function buildTableFactory(safeCase: CaseFunction, options: Optio
         const propertyExtended = {
           ...property,
           columnName,
-          doesExist: tableColumns?.some(propEq('columnName', columnName)) || false,
+          doesExist: tableColumns.some(propEq('columnName', columnName)),
         }
 
         return [
@@ -39,7 +39,9 @@ export default function buildTableFactory(safeCase: CaseFunction, options: Optio
     if (!await knex.schema.hasTable(table.name)) {
       return Promise.all([
         knex.schema.createTable(table.name, buildColumns(properties)),
-        setSchemaRecord(knex, table.name, properties),
+        ...table.name !== TABLE_SERVICE_SCHEMAS
+          ? [setSchemaRecord(knex, table.name, properties)]
+          : [],
       ])
     }
 
@@ -96,7 +98,7 @@ export default function buildTableFactory(safeCase: CaseFunction, options: Optio
         .values(properties)
         .map(property => property.columnName)
 
-      const columnNamesToDrop = (tableColumns || [])
+      const columnNamesToDrop = tableColumns
         .map(prop('columnName'))
         .filter(columnName => !columnNames.includes(columnName))
 
