@@ -65,8 +65,10 @@ export default function buildTableFactory(safeCase: CaseFunction, options: Optio
 
         if (!Object.keys(propertiesToAlter).length) return {}
 
-        // TODO: alter columns only based on diff
-        await knex.schema.alterTable(table.name, buildColumns(propertiesToAlter))
+        if (options.doAlterColumnsBypass !== true) {
+          // TODO: alter columns only based on diff
+          await knex.schema.alterTable(table.name, buildColumns(propertiesToAlter))
+        }
 
         return propertiesToAlter
       })(),
@@ -79,7 +81,9 @@ export default function buildTableFactory(safeCase: CaseFunction, options: Optio
 
         const propertiesToAddStatic = map(prop('_static'), propertiesToAdd)
 
-        await knex.schema.table(table.name, buildColumns(propertiesToAddStatic))
+        if (options.doAlterColumnsBypass !== true) {
+          await knex.schema.table(table.name, buildColumns(propertiesToAddStatic))
+        }
 
         return propertiesToAddStatic
       })(),
@@ -98,9 +102,11 @@ export default function buildTableFactory(safeCase: CaseFunction, options: Optio
 
       if (!columnNamesToDrop.length) return []
 
-      await knex.schema.alterTable(table.name, (table: Knex.TableBuilder) => {
-        table.dropColumns(...columnNamesToDrop)
-      })
+      if (options.doAlterColumnsBypass !== true) {
+        await knex.schema.alterTable(table.name, (table: Knex.TableBuilder) => {
+          table.dropColumns(...columnNamesToDrop)
+        })
+      }
 
       return columnNamesToDrop
         .flatMap((columnName) => {

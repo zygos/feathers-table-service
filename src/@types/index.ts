@@ -130,6 +130,7 @@ export type Options = {
   apiBase: string
   doAddColumns: boolean
   doAlterColumns: boolean
+  doAlterColumnsBypass: boolean
   doDropColumns: boolean
   doDropTables: boolean
   doDropTablesForce: boolean
