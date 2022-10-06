@@ -17,6 +17,11 @@ type ColumnsAndPropertiesPending = Promise<{
   propertiesExistingMap: Record<string, PropertiesInfo[]>
 }>
 
+const COLUMNS_PROPERTIES_DEFAULT: ColumnsAndPropertiesPending = Promise.resolve(Object.freeze({
+  columnsMap: {},
+  propertiesExistingMap: {},
+}))
+
 export default function createServiceFactory(options: Options, afterAll: [string, Function][]) {
   const safeCase = safeCaseFactory(options)
   const formatTableSchema = formatTableSchemaFactory(safeCase)
@@ -38,13 +43,14 @@ export default function createServiceFactory(options: Options, afterAll: [string
     let resultPending: ColumnsAndPropertiesPending
 
     return (knex: any) => {
+      if (!knex) {
+        return COLUMNS_PROPERTIES_DEFAULT
+      }
+
       // run lazily only if needed
-      if (!resultPending && knex) {
+      if (!resultPending) {
         if (doMigrateSchema && doDropTables) {
-          return Promise.resolve({
-            columnsMap: {},
-            propertiesExistingMap: {},
-          }) as ColumnsAndPropertiesPending
+          return COLUMNS_PROPERTIES_DEFAULT
         }
 
         resultPending = (async() => {
