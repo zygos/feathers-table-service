@@ -1,4 +1,4 @@
-import Feathers, { Application, HookContext } from 'feathersjs__feathers'
+import Feathers, { Application, HookContext } from '@feathersjs/feathers'
 import { Connection, Channel } from '@feathersjs/socket-commons'
 
 export type HookPredicateAsync = (ctx: HookContext<any>) => PredicateBoolAsync
