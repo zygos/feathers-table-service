@@ -39,13 +39,34 @@ export default function createServiceFactory(options: Options, afterAll: [string
     serviceOptions: serviceOptionsGlobal,
   } = options
 
+  const createSchemaTableIfNotExist = async (knex: any) => {
+    const hasSchemasTable = await knex.schema
+    .hasTable(TABLE_SERVICE_SCHEMAS)
+
+    if (!hasSchemasTable) {
+      await buildTable(knex, [], {}, {
+        name: TABLE_SERVICE_SCHEMAS,
+        schema: {
+          properties: {
+            tableName: STRING({
+              primary: true,
+            }),
+            properties: JSONB(),
+          },
+        },
+      })
+    }
+  }
+
   const getColumnsAndProperties = (() => {
     let resultPending: ColumnsAndPropertiesPending
 
-    return (knex: any) => {
+    return async (knex: any) => {
       if (!knex) {
         return COLUMNS_PROPERTIES_DEFAULT
       }
+
+      await createSchemaTableIfNotExist(knex)
 
       // run lazily only if needed
       if (!resultPending) {
@@ -61,26 +82,7 @@ export default function createServiceFactory(options: Options, afterAll: [string
             knex.schema
               .raw('select * from information_schema.columns where table_schema = current_schema()'),
             (async() => {
-              const hasSchemasTable = await knex.schema
-                .hasTable(TABLE_SERVICE_SCHEMAS)
-
-              if (!hasSchemasTable) {
-                await buildTable(knex, [], {}, {
-                  name: TABLE_SERVICE_SCHEMAS,
-                  schema: {
-                    properties: {
-                      tableName: STRING({
-                        primary: true,
-                      }),
-                      properties: JSONB(),
-                    },
-                  },
-                })
-
-                return []
-              }
-
-              return await knex(TABLE_SERVICE_SCHEMAS).select()
+              return knex(TABLE_SERVICE_SCHEMAS).select()
             })(),
           ])
 
@@ -174,17 +176,18 @@ export default function createServiceFactory(options: Options, afterAll: [string
       app.setTableSchema(name, blueprint.table.schema)
 
       if (doMigrateSchema && typeof blueprint.table.name === 'string') {
+        const tableName = safeCase(blueprint.table.name)
+
         if (doDropTables) {
           try {
-            await knex.schema.dropTableIfExists(blueprint.table.name)
+            await knex.schema.dropTableIfExists(tableName)
           } catch (err) {
             if (!doDropTablesForce) throw err
 
-            await knex.raw(`DROP TABLE IF EXISTS "${blueprint.table.name}" CASCADE`)
+            await knex.raw(`DROP TABLE IF EXISTS "${tableName}" CASCADE`)
           }
         }
 
-        const tableName = safeCase(blueprint.table.name)
         const propertiesExisting = propertiesExistingMap[tableName]
           ? propertiesExistingMap[tableName][0].properties
           : {}

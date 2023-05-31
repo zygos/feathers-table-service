@@ -36,11 +36,13 @@ export default function buildTableFactory(safeCase: CaseFunction, options: Optio
         ]
       }))
 
-    if (!await knex.schema.hasTable(table.name)) {
+    const tableName = safeCase(table.name)
+
+    if (!await knex.schema.hasTable(tableName)) {
       return Promise.all([
-        knex.schema.createTable(table.name, buildColumns(properties)),
-        ...table.name !== TABLE_SERVICE_SCHEMAS
-          ? [setSchemaRecord(knex, table.name, properties)]
+        knex.schema.createTable(tableName, buildColumns(properties)),
+        ...tableName !== TABLE_SERVICE_SCHEMAS
+          ? [setSchemaRecord(knex, tableName, properties)]
           : [],
       ])
     }
@@ -69,7 +71,7 @@ export default function buildTableFactory(safeCase: CaseFunction, options: Optio
 
         if (options.doAlterColumnsBypass !== true) {
           // TODO: alter columns only based on diff
-          await knex.schema.alterTable(table.name, buildColumns(propertiesToAlter))
+          await knex.schema.alterTable(tableName, buildColumns(propertiesToAlter))
         }
 
         return propertiesToAlter
@@ -84,7 +86,7 @@ export default function buildTableFactory(safeCase: CaseFunction, options: Optio
         const propertiesToAddStatic = map(prop('_static'), propertiesToAdd)
 
         if (options.doAlterColumnsBypass !== true) {
-          await knex.schema.table(table.name, buildColumns(propertiesToAddStatic))
+          await knex.schema.table(tableName, buildColumns(propertiesToAddStatic))
         }
 
         return propertiesToAddStatic
@@ -99,13 +101,13 @@ export default function buildTableFactory(safeCase: CaseFunction, options: Optio
         .map(property => property.columnName)
 
       const columnNamesToDrop = tableColumns
-        .map(prop('columnName'))
-        .filter(columnName => !columnNames.includes(columnName))
+        .map(itm => itm.columnName)
+        .filter(columnName => columnName && !columnNames.includes(columnName))
 
       if (!columnNamesToDrop.length) return []
 
       if (options.doAlterColumnsBypass !== true) {
-        await knex.schema.alterTable(table.name, (table: Knex.TableBuilder) => {
+        await knex.schema.alterTable(tableName, (table: Knex.TableBuilder) => {
           table.dropColumns(...columnNamesToDrop)
         })
       }
@@ -129,7 +131,7 @@ export default function buildTableFactory(safeCase: CaseFunction, options: Optio
       // TODO: only update if something has changed
       await setSchemaRecord(
         knex,
-        table.name,
+        tableName,
         merge(propertiesPreviousToMerge, propertiesStaticsToUpdate),
       )
     }
