@@ -83,8 +83,8 @@ export default function migrateIndexesFactory(safeCase: CaseFunction, options: O
           const dropKey = constraintTypes[constraintTypeKey]?.dropKey ||
             `drop${capitalize(constraintTypeKey)}`
 
-          if(tableBuilder[`${dropKey}`]) {
-            tableBuilder[`${dropKey}`](null, constraint.name)
+          if(tableBuilder[dropKey]) {
+            tableBuilder[dropKey](null, constraint.name)
           }
         })
       })

@@ -209,7 +209,7 @@ export interface Validator {
 }
 
 export interface ConstraintDefinition {
-  dropKey?: String,
+  dropKey?: string,
   format: Function,
   getExisting: Function,
   isSame: Function,
