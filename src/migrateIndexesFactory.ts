@@ -35,8 +35,11 @@ export default function migrateIndexesFactory(safeCase: CaseFunction, options: O
     // TODO: migrate primary key
     // TODO: support withKeyName for indexes
 
-    const indexes = await constraintTypes.index.getExisting(knex, table.name)
-    const references = await constraintTypes.references.getExisting(knex, table.name)
+    const tableName = safeCase(table.name)
+
+    const indexes = await constraintTypes.index.getExisting(knex, tableName)
+    const references = await constraintTypes.references.getExisting(knex, tableName)
+
     const constraintsExisting = [...indexes, ...references]
     const constraintsWanted = Object
       .entries(table.schema.properties)
@@ -61,7 +64,7 @@ export default function migrateIndexesFactory(safeCase: CaseFunction, options: O
 
           const constraints = constraintsSchemaArray
             .map((constraintSchemaItem: unknown) => constraintType
-              .format(table.name, columnName, constraintSchemaItem, field, safeCase))
+              .format(tableName, columnName, constraintSchemaItem, field, safeCase))
 
           return [columnName, constraintTypeKey, constraints]
         }))
@@ -75,18 +78,20 @@ export default function migrateIndexesFactory(safeCase: CaseFunction, options: O
       .filter(hasNoMatchingConstraint(constraintsWanted))
 
     if (constraintsDrop.length) {
-      await knex.schema.alterTable(table.name, (tableBuilder: CreateTableBuilder) => {
+      await knex.schema.alterTable(tableName, (tableBuilder: CreateTableBuilder) => {
         constraintsDrop.forEach(([columnName, constraintTypeKey, constraint]) => {
-          const dropKey = constraintTypes[constraintTypeKey].dropKey ||
+          const dropKey = constraintTypes[constraintTypeKey]?.dropKey ||
             `drop${capitalize(constraintTypeKey)}`
 
-          tableBuilder[`${dropKey}`](null, constraint.name)
+          if(tableBuilder[`${dropKey}`]) {
+            tableBuilder[`${dropKey}`](null, constraint.name)
+          }
         })
       })
     }
 
     if (constraintsAdd.length) {
-      await knex.schema.alterTable(table.name, (tableBuilder: CreateTableBuilder) => {
+      await knex.schema.alterTable(tableName, (tableBuilder: CreateTableBuilder) => {
         constraintsAdd.forEach(([columnName, constraintType, constraint]) => {
           const columnsArgument = uncastArray(constraint.columns)
 
