@@ -1,8 +1,8 @@
-import Feathers, { Application, HookContext, Service, ServiceMethods } from '@feathersjs/feathers'
+import Feathers, { Application, HookContext } from 'feathersjs__feathers'
 import { Connection, Channel } from '@feathersjs/socket-commons'
 
-export type HookPredicateAsync = (ctx: HookContext) => PredicateBoolAsync
-export type HookPredicateSync = (ctx: HookContext) => boolean
+export type HookPredicateAsync = (ctx: HookContext<any>) => PredicateBoolAsync
+export type HookPredicateSync = (ctx: HookContext<any>) => boolean
 export type HookPredicate = HookPredicateSync | HookPredicateAsync
 export type PredicateBoolAsync = Promise<boolean>
 export type PredicateBool = boolean | PredicateBoolAsync
@@ -118,7 +118,7 @@ export type HookMethodAll = 'all'
   | HookMethod
 
 export type HookMethodsAll = {
-  [key in HookMethodAll]?: Function[]
+  [key in HookMethodAll]?: Function | Function[]
 }
 
 export type Indexes = Array<{
@@ -168,11 +168,9 @@ export interface StashSchema {
   [key: string]: TableSchemaProperties
 }
 
-export interface DataStashSchema extends StashSchema {
-  [key: string]: TableSchemaCascade
-}
+export type DataStashSchema = Record<string, TableSchemaCascade> & StashSchema
 
-export interface TableSchemaCascade extends TableSchema {
+export interface TableSchemaCascade extends Partial<TableSchema> {
   cascade?: CascadeSchema
 }
 
@@ -181,7 +179,7 @@ export interface CascadeSchema {
   methods?: HookMethod[]
   serviceName: string
   joinVia?: string
-  stashKey: string
+  stashKey?: string
   type: number
 }
 
