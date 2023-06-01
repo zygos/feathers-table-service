@@ -7,7 +7,7 @@ import {
 } from "./@types";
 import { JSONB, STRING } from "./presets";
 import { Application } from "@feathersjs/feathers";
-import { groupBy, prop } from "rambda";
+import { groupBy, is, prop } from "rambda";
 import buildTableFactory from "./buildTableFactory";
 import formatSchema from "./formatSchema";
 import formatTableSchemaFactory from "./formatTableSchemaFactory";
@@ -70,8 +70,6 @@ export default function createServiceFactory(
         }
       );
     }
-
-    return knex(TABLE_SERVICE_SCHEMAS).select();
   };
 
   const getColumnsAndProperties = (() => {
@@ -85,6 +83,11 @@ export default function createServiceFactory(
       // run lazily only if needed
       if (!resultPending) {
         resultPending = (async () => {
+          await createSchemaTableIfNotExist(knex);
+          if (doMigrateSchema && doDropTables) {
+            return COLUMNS_PROPERTIES_DEFAULT;
+          }
+
           const [schemaInfo, propertiesInfo]: [
             Record<string, ColumnInfo[]>,
             PropertiesInfo[]
@@ -93,7 +96,7 @@ export default function createServiceFactory(
               "select * from information_schema.columns where table_schema = current_schema()"
             ),
             (async () => {
-              return createSchemaTableIfNotExist(knex);
+              return knex(TABLE_SERVICE_SCHEMAS).select();
             })(),
           ]);
 
@@ -104,10 +107,6 @@ export default function createServiceFactory(
             propertiesExistingMap: groupBy(prop("tableName"), propertiesInfo),
           };
         })();
-
-        if (doMigrateSchema && doDropTables) {
-          return COLUMNS_PROPERTIES_DEFAULT;
-        }
       }
 
       return resultPending;
