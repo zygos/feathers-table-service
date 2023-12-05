@@ -12,6 +12,7 @@ const defaultField = {
   transformForce: false,
   primary: false,
   references: null,
+  inTable: null,
   unique: false,
 }
 
@@ -25,7 +26,7 @@ export default function formatSchema(schema: TableSchema): TableSchema {
       ...field,
     }
 
-    if (field.references) {
+    if (field.references || field.inTable) {
       schema.properties[columnName].foreign = true
     }
   }
