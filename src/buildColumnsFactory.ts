@@ -55,6 +55,10 @@ export default function buildColumns(properties: TableSchemaProperties) {
       if (property.onUpdate) {
         column.onUpdate(property.onUpdate)
       }
+
+      if (property.inTable) {
+        column.references(property.references || 'id').inTable(property.inTable)
+      }
     })
   }
 }
