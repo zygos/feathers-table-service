@@ -1,6 +1,6 @@
 {
   "name": "feathers-table-service",
-  "version": "3.0.0-44",
+  "version": "3.0.0-45",
   "description": "",
   "main": "index.js",
   "types": "dist/index.d.ts",
@@ -26,7 +26,7 @@
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^6.0.0",
     "eslint-plugin-standard": "^5.0.0",
-    "knex": "^1.0.2",
+    "knex": "^2.5.1",
     "typescript": "^4.5.2"
   },
   "dependencies": {
