@@ -19,12 +19,13 @@ function areVirtuallySameArrays(array1: string[], array2: string[]) {
 export const constraintTypes: { [key: string]: ConstraintDefinition } = {
   references: {
     dropKey: 'dropForeign',
-    format(tableName: String, columnName: String, constraint: any, _: any, safeCase: CaseFunction) {
+    format(tableName: String, columnName: String, constraint: any, field: any, safeCase: CaseFunction) {
       const defaultConstraint = {
         columns: [safeCase(columnName)],
         name: `${tableName}_${safeCase(columnName)}_foreign`,
         onDelete: null,
         onUpdate: null,
+        inTable: field.inTable,
       }
 
       if (typeof constraint === 'string') {
@@ -89,6 +90,7 @@ export const constraintTypes: { [key: string]: ConstraintDefinition } = {
               // TODO: test multi-column foreign keys
               columns: [foreignKey.columnName],
               references: [`${foreignKey.foreignTableName}.${foreignKey.foreignColumnName}`],
+              inTable: foreignKey.foreignTableName,
               name: foreignKey.constraintName,
 
               // TODO: add

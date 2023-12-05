@@ -83,7 +83,7 @@ export default function migrateIndexesFactory(safeCase: CaseFunction, options: O
           const dropKey = constraintTypes[constraintTypeKey]?.dropKey ||
             `drop${capitalize(constraintTypeKey)}`
 
-          if(tableBuilder[dropKey]) {
+          if (tableBuilder[dropKey]) {
             tableBuilder[dropKey](null, constraint.name)
           }
         })
@@ -100,6 +100,7 @@ export default function migrateIndexesFactory(safeCase: CaseFunction, options: O
             const reference: any = tableBuilder
               .foreign(columnsArgument, constraint.name)
               .references(referencesArgument)
+              .inTable(constraint.inTable)
 
             ;['onDelete', 'onUpdate']
               .filter(cascadeEvent => constraint[cascadeEvent])

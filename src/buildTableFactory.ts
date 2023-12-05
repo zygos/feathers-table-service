@@ -183,6 +183,7 @@ const toStaticSchema = (() => {
     'onUpdate',
     'primary',
     'references',
+    'inTable',
     'type',
     'typeArgs',
     'unique',

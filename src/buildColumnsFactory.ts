@@ -10,7 +10,7 @@ export default function buildColumns(properties: TableSchemaProperties) {
       const typeArgs = property.args || property.typeArgs || []
       const isAlter = property.doesExist
 
-      if (isAlter && (property.unique || property.primary || property.references)) return
+      if (isAlter && (property.unique || property.primary)) return
 
       const column = typeof tableBuilder[type] === 'function'
         ? tableBuilder[type](columnName, ...typeArgs)
