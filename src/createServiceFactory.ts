@@ -4,19 +4,19 @@ import {
   ColumnInfo,
   Options,
   PropertiesInfo,
-} from "./@types";
-import { JSONB, STRING } from "./presets";
-import { Application } from "@feathersjs/feathers";
-import { groupBy, is, prop } from "rambda";
-import buildTableFactory from "./buildTableFactory";
-import formatSchema from "./formatSchema";
-import formatTableSchemaFactory from "./formatTableSchemaFactory";
-import inheritHooks from "./inheritHooks";
-import migrateIndexesFactory from "./migrateIndexesFactory";
-import safeCaseFactory from "./safeCaseFactory";
-import setupChannelsFactory from "./setupChannelsFactory";
-import { castArray, maybeCall } from "./utils";
-import { TABLE_SERVICE_SCHEMAS } from "./consts";
+} from './@types'
+import { JSONB, STRING } from './presets'
+import { Application } from '@feathersjs/feathers'
+import { groupBy, is, prop } from 'rambda'
+import buildTableFactory from './buildTableFactory'
+import formatSchema from './formatSchema'
+import formatTableSchemaFactory from './formatTableSchemaFactory'
+import inheritHooks from './inheritHooks'
+import migrateIndexesFactory from './migrateIndexesFactory'
+import safeCaseFactory from './safeCaseFactory'
+import setupChannelsFactory from './setupChannelsFactory'
+import { castArray, maybeCall } from './utils'
+import { TABLE_SERVICE_SCHEMAS } from './consts'
 
 type ColumnsAndPropertiesPending = Promise<{
   columnsMap: Record<string, ColumnInfo[]>;
@@ -27,17 +27,17 @@ const COLUMNS_PROPERTIES_DEFAULT: ColumnsAndPropertiesPending = Promise.resolve(
   Object.freeze({
     columnsMap: {},
     propertiesExistingMap: {},
-  })
-);
+  }),
+)
 
 export default function createServiceFactory(
   options: Options,
-  afterAll: [string, Function][]
+  afterAll: [string, Function][],
 ) {
-  const safeCase = safeCaseFactory(options);
-  const formatTableSchema = formatTableSchemaFactory(safeCase);
-  const buildTable = buildTableFactory(safeCase, options);
-  const migrateIndexes = migrateIndexesFactory(safeCase, options);
+  const safeCase = safeCaseFactory(options)
+  const formatTableSchema = formatTableSchemaFactory(safeCase)
+  const buildTable = buildTableFactory(safeCase, options)
+  const migrateIndexes = migrateIndexesFactory(safeCase, options)
 
   const {
     doDropTables,
@@ -48,10 +48,10 @@ export default function createServiceFactory(
     globalHooks = {},
     lifecycle = {},
     serviceOptions: serviceOptionsGlobal,
-  } = options;
+  } = options
 
-  const createSchemaTableIfNotExist = async (knex: any) => {
-    const hasSchemasTable = await knex.schema.hasTable(TABLE_SERVICE_SCHEMAS);
+  const createSchemaTableIfNotExist = async(knex: any) => {
+    const hasSchemasTable = await knex.schema.hasTable(TABLE_SERVICE_SCHEMAS)
     if (!hasSchemasTable) {
       await buildTable(
         knex,
@@ -67,25 +67,25 @@ export default function createServiceFactory(
               properties: JSONB(),
             },
           },
-        }
-      );
+        },
+      )
     }
-  };
+  }
 
   const getColumnsAndProperties = (() => {
-    let resultPending: ColumnsAndPropertiesPending;
+    let resultPending: ColumnsAndPropertiesPending
 
-    return async (knex: any) => {
+    return async(knex: any) => {
       if (!knex) {
-        return COLUMNS_PROPERTIES_DEFAULT;
+        return COLUMNS_PROPERTIES_DEFAULT
       }
 
       // run lazily only if needed
       if (!resultPending) {
-        resultPending = (async () => {
-          await createSchemaTableIfNotExist(knex);
+        resultPending = (async() => {
+          await createSchemaTableIfNotExist(knex)
           if (doMigrateSchema && doDropTables) {
-            return COLUMNS_PROPERTIES_DEFAULT;
+            return COLUMNS_PROPERTIES_DEFAULT
           }
 
           const [schemaInfo, propertiesInfo]: [
@@ -93,41 +93,41 @@ export default function createServiceFactory(
             PropertiesInfo[]
           ] = await Promise.all([
             knex.schema.raw(
-              "select * from information_schema.columns where table_schema = current_schema()"
+              'select * from information_schema.columns where table_schema = current_schema()',
             ),
-            (async () => {
-              return knex(TABLE_SERVICE_SCHEMAS).select();
+            (async() => {
+              return knex(TABLE_SERVICE_SCHEMAS).select()
             })(),
-          ]);
+          ])
 
-          const columnsExisting: ColumnInfo[] = schemaInfo.rows;
+          const columnsExisting: ColumnInfo[] = schemaInfo.rows
 
           return {
-            columnsMap: groupBy(prop("tableName"), columnsExisting),
-            propertiesExistingMap: groupBy(prop("tableName"), propertiesInfo),
-          };
-        })();
+            columnsMap: groupBy(prop('tableName'), columnsExisting),
+            propertiesExistingMap: groupBy(prop('tableName'), propertiesInfo),
+          }
+        })()
       }
 
-      return resultPending;
-    };
-  })();
+      return resultPending
+    }
+  })()
 
   async function createService(
     name: string,
     blueprintProvided: Blueprint | BlueprintFactory,
-    app: Application
+    app: Application,
   ) {
-    if (typeof blueprintProvided === "function") {
-      blueprintProvided = blueprintProvided(app);
+    if (typeof blueprintProvided === 'function') {
+      blueprintProvided = blueprintProvided(app)
     }
 
-    const knex = app.get("knexClient");
+    const knex = app.get('knexClient')
 
     const { columnsMap, propertiesExistingMap } = await getColumnsAndProperties(
-      knex
-    );
-    const blueprint = formatTableSchema(name, blueprintProvided);
+      knex,
+    )
+    const blueprint = formatTableSchema(name, blueprintProvided)
 
     const feathersServiceFactory = () => {
       const rawService =
@@ -135,122 +135,122 @@ export default function createServiceFactory(
         (blueprint.serviceClass || feathersKnex)({
           ...maybeCall(serviceOptionsGlobal, [app]),
           ...blueprint.serviceOptions,
-        });
+        })
 
       // assign table schema name to custom services
       if (blueprint.service && blueprint.table && !blueprint.table.name) {
         if (Array.isArray(blueprint.service)) {
           const serviceInstance = blueprint.service
             .filter(Boolean)
-            .find((service) => service.constructor?.name === "Service");
+            .find((service) => service.constructor?.name === 'Service')
 
           if (serviceInstance) {
             serviceInstance.options = {
               name,
               ...(serviceInstance.options || {}),
-            };
+            }
           }
         } else {
           rawService.options = {
             name,
             ...(rawService.options || {}),
-          };
+          }
         }
       }
 
-      if (!blueprint.extend || typeof rawService.extend !== "function") {
-        return rawService;
+      if (!blueprint.extend || typeof rawService.extend !== 'function') {
+        return rawService
       }
 
       const serviceExtension =
-        typeof blueprint.extend === "function"
+        typeof blueprint.extend === 'function'
           ? blueprint.extend(app)
-          : blueprint.extend;
+          : blueprint.extend
 
-      return rawService.extend(serviceExtension);
-    };
+      return rawService.extend(serviceExtension)
+    }
 
-    const feathersService = feathersServiceFactory();
+    const feathersService = feathersServiceFactory()
 
-    if (!feathersService) throw new Error(`Could not initialize ${name}`);
+    if (!feathersService) throw new Error(`Could not initialize ${name}`)
 
     const serviceChain = [
       ...castArray((blueprint.middleware || {}).before || []),
       ...castArray(feathersService),
       ...castArray((blueprint.middleware || {}).after || []),
-    ];
+    ]
 
-    const service = (app.registerService as any)(name, ...serviceChain);
+    const service = (app.registerService as any)(name, ...serviceChain)
 
     if (blueprint.hooks) {
-      service.hooks(inheritHooks(blueprint.hooks, globalHooks));
+      service.hooks(inheritHooks(blueprint.hooks, globalHooks))
     }
 
     if (blueprint.channels) {
-      setupChannelsFactory(app)(service, blueprint.channels);
+      setupChannelsFactory(app)(service, blueprint.channels)
     }
 
     if (blueprint.table) {
-      blueprint.table.schema = formatSchema(blueprint.table.schema);
-      app.setTableSchema(name, blueprint.table.schema);
+      blueprint.table.schema = formatSchema(blueprint.table.schema)
+      app.setTableSchema(name, blueprint.table.schema)
 
-      if (doMigrateSchema && typeof blueprint.table.name === "string") {
-        const tableName = safeCase(blueprint.table.name);
+      if (doMigrateSchema && typeof blueprint.table.name === 'string') {
+        const tableName = safeCase(blueprint.table.name)
 
         if (doDropTables) {
           try {
-            await knex.schema.dropTableIfExists(tableName);
+            await knex.schema.dropTableIfExists(tableName)
           } catch (err) {
-            if (!doDropTablesForce) throw err;
+            if (!doDropTablesForce) throw err
 
-            await knex.raw(`DROP TABLE IF EXISTS "${tableName}" CASCADE`);
+            await knex.raw(`DROP TABLE IF EXISTS "${tableName}" CASCADE`)
           }
         }
 
         const propertiesExisting = propertiesExistingMap[tableName]
           ? propertiesExistingMap[tableName][0].properties
-          : {};
+          : {}
 
         await buildTable(
           knex,
           columnsMap[tableName] || [],
           propertiesExisting,
-          blueprint.table
-        );
+          blueprint.table,
+        )
 
         if (!doDropTables && doMigrateIndexes) {
-          await migrateIndexes(knex, blueprint.table);
+          await migrateIndexes(knex, blueprint.table)
         }
       }
     }
 
     if (blueprint.setup) {
-      await blueprint.setup(app, feathersService);
+      await blueprint.setup(app, feathersService)
     }
 
-    app.emit(`tableService.${name}.setup`);
+    app.emit(`tableService.${name}.setup`)
 
     if (feathersService.emit) {
-      feathersService.emit("setup");
+      feathersService.emit('setup')
     }
 
     // TODO: move out of createServiceFactory
     if (blueprint.afterAll) {
-      afterAll.push([name, blueprint.afterAll]);
+      afterAll.push([name, blueprint.afterAll])
     }
 
-    if (typeof lifecycle.processBlueprintAfter === "function") {
-      await lifecycle.processBlueprintAfter(blueprint, app);
+    if (typeof lifecycle.processBlueprintAfter === 'function') {
+      await lifecycle.processBlueprintAfter(blueprint, app)
     }
 
-    app.emit(`tableService.${name}.ready`);
+    app.emit(`tableService.${name}.ready`)
 
     if (feathersService.emit) {
-      feathersService.emit("ready");
+      feathersService.emit('ready')
     }
 
-    return service;
+    return service
   }
 
-  return createService;
+  return createService
 }

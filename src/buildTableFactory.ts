@@ -182,6 +182,7 @@ const toStaticSchema = (() => {
     'onDelete',
     'onUpdate',
     'primary',
+    'foreign',
     'references',
     'inTable',
     'type',
