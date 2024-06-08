@@ -17,7 +17,8 @@ function hasNoMatchingConstraint(matchingIndexArr: any[][]) {
         return otherConstraints
           .some((otherConstraint: unknown) => {
             return constraintTypeKey === otherConstraintTypeKey &&
-              constraintTypes[constraintTypeKey].isSame(constraint, otherConstraint)
+              constraintTypes[constraintTypeKey].isSame(constraint, otherConstraint) &&
+              columnName === otherColumnName
           })
       })
   }
@@ -92,9 +93,8 @@ export default function migrateIndexesFactory(safeCase: CaseFunction, options: O
 
     if (constraintsAdd.length) {
       await knex.schema.alterTable(tableName, (tableBuilder: CreateTableBuilder) => {
-        constraintsAdd.forEach(([columnName, constraintType, constraint]) => {
+        constraintsAdd.forEach(async([columnName, constraintType, constraint]) => {
           const columnsArgument = uncastArray(constraint.columns)
-
           if (constraintType === 'references') {
             const referencesArgument = uncastArray(constraint.references)
             const reference: any = tableBuilder
@@ -105,6 +105,9 @@ export default function migrateIndexesFactory(safeCase: CaseFunction, options: O
             ;['onDelete', 'onUpdate']
               .filter(cascadeEvent => constraint[cascadeEvent])
               .forEach(cascadeEvent => reference[cascadeEvent](constraint[cascadeEvent]))
+          } else if (constraintType === 'unique' && constraint.uniqueNullsNotDistinct) {
+            await knex.schema.raw(`ALTER TABLE "${tableName}" ADD CONSTRAINT "${constraint.name}" 
+              UNIQUE NULLS NOT DISTINCT (${columnsArgument})`)
           } else if (constraintType === 'unique') {
             tableBuilder.unique(columnsArgument, constraint.name)
           } else if (constraintType === 'index') {
