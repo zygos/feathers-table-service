@@ -188,10 +188,11 @@ export const constraintTypes: { [key: string]: ConstraintDefinition } = {
   },
 
   unique: {
-    format(tableName: String, columnName: String, constraint: any, _: any, safeCase: CaseFunction) {
+    format(tableName: String, columnName: String, constraint: any, field: any, safeCase: CaseFunction) {
       const defaultConstraint = {
         columns: [safeCase(columnName)],
         name: `${tableName}_${safeCase(columnName)}_unique`,
+        uniqueNullsNotDistinct: field.uniqueNullsNotDistinct || false,
       }
 
       if (constraint === true) {
